@@ -42,7 +42,7 @@ void ma_debug_print(my_bool ident, char *format, ...);
 void ma_debug_print_error(MADB_Error *err);
 
 /* Debug is on for connection */
-#define MDBUG_C_IS_ON(C) ((C) && (((MADB_Dbc*)(C))->Options & MA_DEBUG_FLAG))
+#define MDBUG_C_IS_ON(C) ((C))
 
 #ifdef WIN32
 #define MDBUG_C_ENTER(C,A)\
