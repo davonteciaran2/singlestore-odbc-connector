@@ -17,6 +17,7 @@
    51 Franklin St., Fifth Floor, Boston, MA 02110, USA
 *************************************************************************************/
 #include <ma_odbc.h>
+#include <mysql.h>
 #include <stdint.h>
 
 #define MADB_FIELD_IS_BINARY(_field) ((_field)->charsetnr == BINARY_CHARSETNR)
@@ -1321,4 +1322,129 @@ void MADB_InstallStmt(MADB_Stmt *Stmt, MYSQL_STMT *stmt)
     MADB_StmtResetResultStructures(Stmt);
     MADB_DescSetIrdMetadata(Stmt, mysql_fetch_fields(FetchMetadata(Stmt)), mysql_stmt_field_count(Stmt->stmt));
   }
+}
+
+
+/**
+Get the table status for a table or tables using SHOW TABLE STATUS.
+Lengths may not be SQL_NTS.
+
+@param[in] stmt           Handle to statement
+@param[in] catalog        Catalog (database) of table, @c NULL for current
+@param[in] catalog_length Length of catalog name
+@param[in] table          Name of table
+@param[in] table_length   Length of table name
+@param[in] wildcard       Whether the table name is a wildcard
+
+@return Result of SHOW TABLE STATUS, or NULL if there is an error
+or empty result (check mysql_errno(stmt->Connection->mariadb) != 0)
+*/
+MYSQL_RES *MADB_ShowTableStatus(MADB_Stmt   *stmt,
+                             SQLCHAR     *catalog,
+                             SQLSMALLINT  catalog_length,
+                             SQLCHAR     *table,
+                             SQLSMALLINT  table_length,
+                             BOOL         wildcard)
+{
+	char tmpbuff[1024];
+  char query[1024] = "SHOW TABLE STATUS ";
+  size_t cnt = 0;
+
+	if (catalog && *catalog)
+	{
+    strcat(query, "FROM `");
+		cnt = mysql_real_escape_string(stmt->Connection->mariadb, tmpbuff, (char *)catalog, catalog_length);
+    strncat(query, tmpbuff, cnt);
+    strcat(query, "` ");
+	}
+
+	/*
+	As a pattern-value argument, an empty string needs to be treated
+	literally. (It's not the same as NULL, which is the same as '%'.)
+	But it will never match anything, so bail out now.
+	*/
+	if (table && wildcard && !*table)
+		return NULL;
+
+	if (table && *table)
+	{
+		strcat(query, "LIKE '");
+		cnt = mysql_real_escape_string(stmt->Connection->mariadb, tmpbuff, (char *)table, table_length);
+    strncat(query, tmpbuff, cnt);
+		strcat(query, "'");
+	}
+  printf("Executing %s\n", query);
+
+  LOCK_MARIADB(stmt->Connection);
+
+  if (mysql_real_query(stmt->Connection->mariadb, query, strlen(query)))
+  {
+    UNLOCK_MARIADB(stmt->Connection);
+    MADB_SetError(&stmt->Error, MADB_ERR_HY001, mysql_error(stmt->Connection->mariadb), mysql_errno(stmt->Connection->mariadb));
+    return NULL;
+  }
+  UNLOCK_MARIADB(stmt->Connection);
+
+  return mysql_store_result(stmt->Connection->mariadb);
+}
+
+/**
+Get the table status for a table or tables using SHOW TABLE STATUS.
+Lengths may not be SQL_NTS.
+
+@param[in] stmt           Handle to statement
+@param[in] catalog        Catalog (database) of table, @c NULL for current
+@param[in] catalog_length Length of catalog name
+@param[in] table          Name of table
+@param[in] table_length   Length of table name
+@param[in] wildcard       Whether the table name is a wildcard
+
+@return Result of SHOW TABLE STATUS, or NULL if there is an error
+or empty result (check mysql_errno(stmt->Connection->mariadb) != 0)
+*/
+MYSQL_RES *MADB_ShowColumnsInTable(MADB_Stmt  *stmt,
+                                   SQLCHAR     *catalog,
+                                   SQLSMALLINT  catalog_length,
+                                   SQLCHAR     *table,
+                                   SQLSMALLINT  table_length,
+                                   SQLCHAR     *column_like,
+                                   SQLSMALLINT  column_length)
+{
+	char tmpbuff[1024];
+  char query[1024] = "SHOW COLUMNS FROM ";
+  size_t cnt = 0;
+
+	if (catalog && *catalog)
+	{
+    strcat(query, "`");
+		cnt = mysql_real_escape_string(stmt->Connection->mariadb, tmpbuff, (char *)catalog, catalog_length);
+    strncat(query, tmpbuff, cnt);
+    strcat(query, "`");
+	  strcat(query, ".");
+	}
+
+  strcat(query, "`");
+  cnt = mysql_real_escape_string(stmt->Connection->mariadb, tmpbuff, (char *)table, table_length);
+  strncat(query, tmpbuff, cnt);
+  strcat(query, "`");
+
+  if (column_like && *column_like && column_length)
+  {
+    strcat(query, " LIKE '");
+		cnt = mysql_real_escape_string(stmt->Connection->mariadb, tmpbuff, (char *)column_like, column_length);
+    strncat(query, tmpbuff, cnt);
+    strcat(query, "'");
+  }
+  printf("Executing %s\n", query);
+
+  LOCK_MARIADB(stmt->Connection);
+  if (mysql_real_query(stmt->Connection->mariadb, query, strlen(query)))
+  {
+    UNLOCK_MARIADB(stmt->Connection);
+    MADB_SetError(&stmt->Error, MADB_ERR_HY001, mysql_error(stmt->Connection->mariadb), mysql_errno(stmt->Connection->mariadb));
+    return NULL;
+  }
+  UNLOCK_MARIADB(stmt->Connection);
+
+  return mysql_store_result(stmt->Connection->mariadb);
 }

@@ -75,6 +75,21 @@ void          MADB_InstallStmt  (MADB_Stmt *Stmt, MYSQL_STMT *stmt);
 /* for dummy binding */
 extern my_bool DummyError;
 
+MYSQL_RES *MADB_ShowTableStatus(MADB_Stmt   *stmt,
+                                SQLCHAR     *catalog,
+                                SQLSMALLINT  catalog_length,
+                                SQLCHAR     *table,
+                                SQLSMALLINT  table_length,
+                                BOOL         wildcard);
+
+MYSQL_RES *MADB_ShowColumnsInTable(MADB_Stmt  *stmt,
+                                   SQLCHAR     *catalog,
+                                   SQLSMALLINT  catalog_length,
+                                   SQLCHAR     *table,
+                                   SQLSMALLINT  table_length,
+                                   SQLCHAR     *column_like,
+                                   SQLSMALLINT  column_length);
+
 /* Stringify macros */
 #define XSTR(s) STR(s)
 #define STR(s) #s

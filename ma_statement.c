@@ -4664,6 +4664,50 @@ static MADB_ShortTypeInfo SqlColumnsColType[18] =
           {SQL_INTEGER,  0, SQL_NO_NULLS, 0},  // ORDINAL_POSITION
           {SQL_VARCHAR,  0, SQL_NULLABLE, 0}}; // IS_NULLABLE
 
+/* {{{ MADB_StmtColumnsNoInfoSchema */
+SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
+                           char *CatalogName, SQLSMALLINT NameLength1,
+                           char *SchemaName,  SQLSMALLINT NameLength2,
+                           char *TableName,   SQLSMALLINT NameLength3,
+                           char *ColumnName,  SQLSMALLINT NameLength4)
+{
+  printf("Entering MADB_StmtColumnsNoInfoSchema\n\n");
+  MYSQL_ROW table_row;
+  unsigned long rows = 0, next_row = 0, *table_lengths;
+
+  // get the list of tables
+  MYSQL_RES *tables_res = MADB_ShowTableStatus(Stmt, CatalogName, NameLength1, TableName, NameLength3, TRUE);
+  if (!tables_res)
+  {
+    return Stmt->Error.ReturnValue;
+  }
+
+  while ((table_row= mysql_fetch_row(tables_res)))
+  {
+    table_lengths = mysql_fetch_lengths(tables_res);
+
+    // for each table get the list of matching columns in the table
+    MYSQL_RES *cols_res = MADB_ShowColumnsInTable(
+      Stmt, CatalogName, NameLength1, table_row[0], table_lengths[0], ColumnName, NameLength4);
+    if (!cols_res)
+    {
+      return Stmt->Error.ReturnValue;
+    }
+
+    // process columns to match ODBC spec
+    MYSQL_ROW column_row;
+    
+    while ((column_row = mysql_fetch_row(cols_res)))
+    {
+      printf("got column %s %s\n", column_row[0], column_row[1]);
+    }
+  }
+
+  // link statement result to the processed columns
+  //mysql_stmt_reset(Stmt);
+}
+
+
 /* {{{ MADB_StmtColumns */
 SQLRETURN MADB_StmtColumns(MADB_Stmt *Stmt,
                            char *CatalogName, SQLSMALLINT NameLength1,
@@ -5822,7 +5866,7 @@ struct st_ma_stmt_methods MADB_StmtMethods=
   MADB_StmtTablePrivileges,
   MADB_StmtTables,
   MADB_StmtStatistics,
-  MADB_StmtColumns,
+  MADB_StmtColumnsNoInfoSchema,
   MADB_StmtProcedureColumns,
   MADB_StmtPrimaryKeys,
   MADB_StmtSpecialColumns,
