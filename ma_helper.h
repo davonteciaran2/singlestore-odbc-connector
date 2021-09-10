@@ -40,7 +40,7 @@ SQLLEN MADB_GetDataSize(SQLSMALLINT SqlType, SQLLEN OctetLength, BOOL Unsigned,
                         SQLSMALLINT Precision, SQLSMALLINT Scale, unsigned int CharMaxLen);
 int MADB_GetMaDBTypeAndLength(SQLINTEGER SqlDataType, my_bool *Unsigned, unsigned long *Length);
 //char *MADB_GetDefaultColumnValue(MADB_Stmt *Stmt, char *Schema, char *TableName, char *Column);
-SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field);
+SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field, my_bool is_ansi);
 size_t MADB_GetHexString(char *BinaryBuffer, size_t BinaryLength,
                           char *HexBuffer, size_t HexLength);
 
@@ -75,12 +75,29 @@ void          MADB_InstallStmt  (MADB_Stmt *Stmt, MYSQL_STMT *stmt);
 /* for dummy binding */
 extern my_bool DummyError;
 
-MYSQL_RES *MADB_ShowTableStatus(MADB_Stmt   *stmt,
+MYSQL_RES *MADB_ShowTables(MADB_Stmt   *stmt,
                                 SQLCHAR     *catalog,
                                 SQLSMALLINT  catalog_length,
                                 SQLCHAR     *table,
                                 SQLSMALLINT  table_length,
                                 BOOL         wildcard);
+
+MYSQL_RES *MADB_FieldsInTable(MADB_Stmt  *stmt,
+                              SQLCHAR     *catalog,
+                              SQLSMALLINT  catalog_length,
+                              SQLCHAR     *table,
+                              SQLSMALLINT  table_length,
+                              SQLCHAR     *column_like,
+                              SQLSMALLINT  column_length);
+
+MYSQL_RES *
+MADB_ListFields(MADB_Stmt   *stmt,
+                SQLCHAR     *catalog,
+                SQLSMALLINT  catalog_length,
+                SQLCHAR     *table,
+                SQLSMALLINT  table_length,
+                SQLCHAR     *column_like,
+                SQLSMALLINT  column_length);
 
 MYSQL_RES *MADB_ShowColumnsInTable(MADB_Stmt  *stmt,
                                    SQLCHAR     *catalog,
@@ -89,6 +106,20 @@ MYSQL_RES *MADB_ShowColumnsInTable(MADB_Stmt  *stmt,
                                    SQLSMALLINT  table_length,
                                    SQLCHAR     *column_like,
                                    SQLSMALLINT  column_length);
+
+typedef struct {
+  char *FieldName;
+  char *FieldTypeS2;
+} FieldShort;
+
+typedef struct {
+  FieldShort *list;
+  int n_fields;
+} FieldWithTypeList;
+
+FieldWithTypeList *ProcessShowColumns(MYSQL_RES *res);
+char *GetFieldTypeFull(const char *name, FieldWithTypeList *allFields);
+void FreeFieldInfo(FieldWithTypeList *allFields);
 
 /* Stringify macros */
 #define XSTR(s) STR(s)

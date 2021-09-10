@@ -109,6 +109,27 @@ MADB_Desc *MADB_DescInit(MADB_Dbc *Dbc,enum enum_madb_desc_type DescType, my_boo
 }
 /* }}} */
 
+void MADB_RecordFree(MADB_DescRecord *Record, SQLINTEGER DescType)
+{
+    MADB_FREE(Record->InternalBuffer);
+    MADB_FREE(Record->DefaultValue);
+ 
+    if (DescType == MADB_DESC_IRD)
+    {
+      MADB_FREE(Record->CatalogName);
+      MADB_FREE(Record->BaseCatalogName);
+      MADB_FREE(Record->BaseColumnName);
+      MADB_FREE(Record->BaseTableName);
+      MADB_FREE(Record->ColumnName);
+      MADB_FREE(Record->TableName);
+      MADB_FREE(Record->TypeName);
+    }
+    else if(DescType == MADB_DESC_IPD)
+    {
+      MADB_FREE(Record->TypeName);
+    }
+}
+
 /* {{{ MADB_DescFree */
 SQLRETURN MADB_DescFree(MADB_Desc *Desc, my_bool RecordsOnly)
 {
@@ -122,23 +143,7 @@ SQLRETURN MADB_DescFree(MADB_Desc *Desc, my_bool RecordsOnly)
   for (i=0; i < Desc->Records.elements; i++)
   {
     Record= ((MADB_DescRecord *)Desc->Records.buffer) + i;
-    MADB_FREE(Record->InternalBuffer);
-    MADB_FREE(Record->DefaultValue);
- 
-    if (Desc->DescType == MADB_DESC_IRD)
-    {
-      MADB_FREE(Record->CatalogName);
-      MADB_FREE(Record->BaseCatalogName);
-      MADB_FREE(Record->BaseColumnName);
-      MADB_FREE(Record->BaseTableName);
-      MADB_FREE(Record->ColumnName);
-      MADB_FREE(Record->TableName);
-      MADB_FREE(Record->TypeName);
-    }
-    else if(Desc->DescType == MADB_DESC_IPD)
-    {
-      MADB_FREE(Record->TypeName);
-    }
+    MADB_RecordFree(Record, Desc->DescType);
   }
   MADB_DeleteDynamic(&Desc->Records);
 
@@ -194,6 +199,7 @@ MADB_SetIrdRecord(MADB_Stmt *Stmt, MADB_DescRecord *Record, MYSQL_FIELD *Field)
   Record->CaseSensitive=   (Field->flags & BINARY_FLAG) ? SQL_TRUE : SQL_FALSE;
   Record->Nullable= (Field->flags & NOT_NULL_FLAG) ? SQL_NO_NULLS : SQL_NULLABLE;
   Record->Unsigned= (Field->flags & UNSIGNED_FLAG) ? SQL_TRUE : SQL_FALSE;
+  // TODO: debug flags setting in Fields
   /* We assume it might be updatable if tablename exists */
   Record->Updateable= (Field->table && Field->table[0]) ? SQL_ATTR_READWRITE_UNKNOWN : SQL_ATTR_READONLY;
 
@@ -238,8 +244,7 @@ MADB_SetIrdRecord(MADB_Stmt *Stmt, MADB_DescRecord *Record, MYSQL_FIELD *Field)
     Record->NumPrecRadix= 0;
     break;
   }
-
-  Record->ConciseType= MapMariadDbToOdbcType(Field);
+  Record->ConciseType= MapMariadDbToOdbcType(Field, Stmt->Connection->IsAnsi);
   /* 
       TYPE:
       For the datetime and interval data types, this field returns the verbose data type: SQL_DATETIME or SQL_INTERVAL.
@@ -533,7 +538,7 @@ MADB_FixIrdRecord(MADB_Stmt *Stmt, MADB_DescRecord *Record)
 
 /* {{{ MADB_FixColumnDataTypes */
 my_bool
-MADB_FixColumnDataTypes(MADB_Stmt *Stmt, MADB_ShortTypeInfo *ColTypesArr)
+MADB_FixColumnDataTypes(MADB_Stmt *Stmt, const MADB_ShortTypeInfo *ColTypesArr)
 {
   SQLSMALLINT     i;
   MADB_DescRecord *Record= NULL;
@@ -569,7 +574,7 @@ MADB_FixColumnDataTypes(MADB_Stmt *Stmt, MADB_ShortTypeInfo *ColTypesArr)
   }
 
   /* If the stmt is re-executed, we should be able to fix columns again */
-  Stmt->ColsTypeFixArr= ColTypesArr;
+  // Stmt->ColsTypeFixArr= ColTypesArr;
   return 0;
 }
 /* }}} */
