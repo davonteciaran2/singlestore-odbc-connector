@@ -80,25 +80,26 @@ and (some) IS_NULLABLE
 ODBC_TEST(t_bug34272)
 {
   SQLCHAR dummy[20];
-  SQLULEN col6, col18, length;
+  SQLULEN col6size, col18size;
+  SQLLEN length;
 
   OK_SIMPLE_STMT(Stmt, "drop table if exists t_bug34272");
-  OK_SIMPLE_STMT(Stmt, "create table t_bug34272 (x int unsigned)");
+  OK_SIMPLE_STMT(Stmt, "create table t_bug34272 (x int(9) unsigned)");
 
   CHECK_STMT_RC(Stmt, SQLColumns(Stmt, NULL, SQL_NTS, NULL, SQL_NTS,
     (SQLCHAR *)"t_bug34272", SQL_NTS, NULL, 0));
 
   CHECK_STMT_RC(Stmt, SQLDescribeCol(Stmt, 6, dummy, sizeof(dummy), NULL, NULL,
-    &col6, NULL, NULL));
+                                     &col6size, NULL, NULL));
   CHECK_STMT_RC(Stmt, SQLDescribeCol(Stmt, 18, dummy, sizeof(dummy), NULL, NULL,
-    &col18, NULL, NULL));
+                                     &col18size, NULL, NULL));
   CHECK_STMT_RC(Stmt, SQLFetch(Stmt));
 
-  CHECK_STMT_RC(Stmt, SQLGetData(Stmt, 6, SQL_C_CHAR, dummy, col6+1, &length));
-  is_num(length, 12);
-  IS_STR(dummy, "int unsigned", length+1);
+  CHECK_STMT_RC(Stmt, SQLGetData(Stmt, 6, SQL_C_CHAR, dummy, col6size + 1, &length));
+  is_num(length, 15);
+  IS_STR(dummy, "int(9) unsigned", length+1);
 
-  CHECK_STMT_RC(Stmt, SQLGetData(Stmt, 18, SQL_C_CHAR, dummy, col18+1, &length));
+  CHECK_STMT_RC(Stmt, SQLGetData(Stmt, 18, SQL_C_CHAR, dummy, col18size + 1, &length));
   is_num(length,3);
   IS_STR(dummy, "YES", length+1);
 
@@ -1401,7 +1402,7 @@ ODBC_TEST(odbc231)
   CHECK_STMT_RC(Stmt, SQLBindCol(Stmt, COLUMN_SIZE, SQL_C_SLONG, &ColumnSize, 0, &ColumnSizeLen));
   CHECK_STMT_RC(Stmt, SQLBindCol(Stmt, BUFFER_LENGTH, SQL_C_ULONG, &BufferLength, 0, &BufferLengthLen));
   CHECK_STMT_RC(Stmt, SQLFetch(Stmt));
-  is_num((unsigned)ColumnSize, ServerNotOlderThan(Connection, 7, 5, 0) ? 0x55555555 : 0x7fffffff);
+  is_num((unsigned)ColumnSize, 0x55555555);  // TODO: use charset-dependent value, this one is valid for 3-byte utf8
   is_num(ColumnSizeLen, sizeof(SQLINTEGER));
   diag("Longtext size: %lu(%lx) type %s %s, buffer length: %lu(%lx) type %s %s", ColumnSize, ColumnSize, OdbcTypeAsString((SQLSMALLINT)Type1, NULL),
     Unsigned1 ? "Unsigned" : "Signed", BufferLength, BufferLength, OdbcTypeAsString((SQLSMALLINT)Type2, NULL), Unsigned2 ? "Unsigned" : "Signed");

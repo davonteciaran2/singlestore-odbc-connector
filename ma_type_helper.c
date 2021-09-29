@@ -158,10 +158,6 @@ SQLLEN S2_GetCharacterOctetLength(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_i
   case MYSQL_TYPE_NEWDATE:
     return sizeof(SQL_TIMESTAMP_STRUCT);
 
-  case MYSQL_TYPE_DECIMAL:
-  case MYSQL_TYPE_NEWDECIMAL:
-    return field->length + 1;
-
   case MYSQL_TYPE_BIT:
     /*
       We treat a BIT(n) as a SQL_BIT if n == 1, otherwise we treat it
@@ -176,6 +172,8 @@ SQLLEN S2_GetCharacterOctetLength(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_i
   case MYSQL_TYPE_STRING:
   case MYSQL_TYPE_VAR_STRING:
   case MYSQL_TYPE_GEOMETRY:
+  case MYSQL_TYPE_DECIMAL:
+  case MYSQL_TYPE_NEWDECIMAL:
     return length;
   case MYSQL_TYPE_TINY_BLOB:
   case MYSQL_TYPE_MEDIUM_BLOB:

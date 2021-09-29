@@ -41,6 +41,7 @@ SQLLEN MADB_GetDataSize(SQLSMALLINT SqlType, SQLLEN OctetLength, BOOL Unsigned,
 int MADB_GetMaDBTypeAndLength(SQLINTEGER SqlDataType, my_bool *Unsigned, unsigned long *Length);
 //char *MADB_GetDefaultColumnValue(MADB_Stmt *Stmt, char *Schema, char *TableName, char *Column);
 SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field, my_bool is_ansi);
+SQLSMALLINT MapToV2Type(SQLSMALLINT type);
 size_t MADB_GetHexString(char *BinaryBuffer, size_t BinaryLength,
                           char *HexBuffer, size_t HexLength);
 
@@ -110,16 +111,17 @@ MYSQL_RES *MADB_ShowColumnsInTable(MADB_Stmt  *stmt,
 typedef struct {
   char *FieldName;
   char *FieldTypeS2;
-} FieldShort;
+  char *DefaultValue;
+} FieldDescr;
 
 typedef struct {
-  FieldShort *list;
+  FieldDescr *list;
   int n_fields;
-} FieldWithTypeList;
+} FieldDescrList;
 
-FieldWithTypeList *ProcessShowColumns(MYSQL_RES *res);
-char *GetFieldTypeFull(const char *name, FieldWithTypeList *allFields);
-void FreeFieldInfo(FieldWithTypeList *allFields);
+FieldDescrList *ProcessShowColumns(MYSQL_RES *res);
+FieldDescr *GetFieldDescr(const char *name, FieldDescrList *allFields);
+void FreeFieldDescrList(FieldDescrList *allFields);
 
 /* Stringify macros */
 #define XSTR(s) STR(s)

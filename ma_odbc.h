@@ -323,7 +323,7 @@ struct st_ma_odbc_stmt
   unsigned long             *Lengths;
   char                      *TableName;
   char                      *CatalogName;
-  MADB_ShortTypeInfo        *ColsTypeFixArr;  // TODO: delete this
+  MADB_ShortTypeInfo        *ColsTypeFixArr;
   /* Application Descriptors */
   MADB_Desc *Apd;
   MADB_Desc *Ard;

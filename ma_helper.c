@@ -190,7 +190,7 @@ int MADB_KeyTypeCount(MADB_Dbc *Connection, char *TableName, int KeyFlag)
   {
     p+= _snprintf(p, sizeof(StmtStr) - strlen(p), "`%s`.", Database);
   }
-  p+= _snprintf(p, sizeof(StmtStr) - strlen(p), "%s LIMIT 0", TableName);
+  p+= _snprintf(p, sizeof(StmtStr) - strlen(p), "`%s` LIMIT 0", TableName);
   if (MA_SQLAllocHandle(SQL_HANDLE_STMT, (SQLHANDLE)Connection, (SQLHANDLE*)&Stmt) == SQL_ERROR ||
     Stmt->Methods->ExecDirect(Stmt, (char *)StmtStr, SQL_NTS) == SQL_ERROR ||
     Stmt->Methods->Fetch(Stmt) == SQL_ERROR)
@@ -515,6 +515,7 @@ size_t MADB_GetDisplaySize(MYSQL_FIELD *Field, MARIADB_CHARSET_INFO *charset)
     else
     {
       return Field->length/charset->char_maxlen;
+      // return Field->length; /* we don't look at char_maxlen as each character can take one byte*/
     }
   }
   default:
@@ -693,6 +694,22 @@ SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field, my_bool is_ansi)
       return SQL_DECIMAL;
     default:
       return SQL_UNKNOWN_TYPE;
+  }
+}
+
+SQLSMALLINT MapToV2Type(SQLSMALLINT type)
+{
+  /* We need to map time types */
+  switch(type)
+  {
+  case SQL_TYPE_TIMESTAMP:
+    return SQL_TIMESTAMP;
+  case SQL_TYPE_DATE:
+    return SQL_DATE;
+  case SQL_TYPE_TIME:
+    return SQL_TIME;
+  default:
+    return type;
   }
 }
 
@@ -1360,8 +1377,7 @@ MYSQL_RES *MADB_ShowTables(MADB_Stmt   *stmt,
 	if (catalog && *catalog)
 	{
     strcat(query, "FROM `");
-		cnt = mysql_real_escape_string(stmt->Connection->mariadb, tmpbuff, (char *)catalog, catalog_length);
-    strncat(query, tmpbuff, cnt);
+    strncat(query, catalog, catalog_length);
     strcat(query, "` ");
 	}
 
@@ -1422,15 +1438,13 @@ MYSQL_RES *MADB_ShowColumnsInTable(MADB_Stmt  *stmt,
 	if (catalog && *catalog)
 	{
     strcat(query, "`");
-		cnt = mysql_real_escape_string(stmt->Connection->mariadb, tmpbuff, (char *)catalog, catalog_length);
-    strncat(query, tmpbuff, cnt);
+    strncat(query, catalog, catalog_length);
     strcat(query, "`");
 	  strcat(query, ".");
 	}
 
   strcat(query, "`");
-  cnt = mysql_real_escape_string(stmt->Connection->mariadb, tmpbuff, (char *)table, table_length);
-  strncat(query, tmpbuff, cnt);
+  strncat(query, table, table_length);
   strcat(query, "`");
 
   if (column_like && *column_like && column_length)
@@ -1453,14 +1467,13 @@ MYSQL_RES *MADB_ShowColumnsInTable(MADB_Stmt  *stmt,
   return mysql_store_result(stmt->Connection->mariadb);
 }
 
-FieldWithTypeList *ProcessShowColumns(MYSQL_RES *res)
+FieldDescrList *ProcessShowColumns(MYSQL_RES *res)
 {
   int nRows = mysql_num_rows(res);
 
   MYSQL_ROW columnsRow;
-  ULONG *columns_lengths;
-  FieldWithTypeList *fieldsResult = (FieldWithTypeList*)malloc(sizeof(FieldWithTypeList));
-  fieldsResult->list = (FieldShort*)malloc(sizeof(FieldShort) * nRows);
+  FieldDescrList *fieldsResult = (FieldDescrList*)malloc(sizeof(FieldDescrList));
+  fieldsResult->list = (FieldDescr*)malloc(sizeof(FieldDescr) * nRows);
   fieldsResult->n_fields = nRows;
 
   int rowNum = 0;
@@ -1469,19 +1482,27 @@ FieldWithTypeList *ProcessShowColumns(MYSQL_RES *res)
   {
     (fieldsResult->list)[rowNum].FieldName = strdup(columnsRow[0]);
     (fieldsResult->list)[rowNum].FieldTypeS2 = strdup(columnsRow[1]);
+    if (columnsRow[4] && *columnsRow[4])
+    {
+      (fieldsResult->list)[rowNum].DefaultValue = strdup(columnsRow[4]);
+    }
+    else
+    {
+       (fieldsResult->list)[rowNum].DefaultValue = NULL;
+    }
     rowNum++;
   }
   return fieldsResult;
 }
 
-char *GetFieldTypeFull(const char *name, FieldWithTypeList *allFields)
+FieldDescr *GetFieldDescr(const char *name, FieldDescrList *allFields)
 {
   int i;
   for (i = 0; i < allFields->n_fields; ++i)
   {
     if (!strcmp(name, (allFields->list)[i].FieldName))
     {
-      return (allFields->list)[i].FieldTypeS2;
+      return allFields->list + i;
     }
   }
   return NULL;
@@ -1500,8 +1521,15 @@ int GetFieldTypeShortLen(const char *name)
   return 0;
 }
 
-void FreeFieldInfo(FieldWithTypeList *allFields)
+void FreeFieldDescrList(FieldDescrList *allFields)
 {
+  int i;
+  for (i = 0; i < allFields->n_fields; ++i)
+  {
+    free(allFields->list[i].FieldName);
+    free(allFields->list[i].FieldTypeS2);
+    free(allFields->list[i].DefaultValue);
+  }
   free(allFields->list);
   free(allFields);
 }
@@ -1517,14 +1545,25 @@ MADB_ListFields(MADB_Stmt   *stmt,
 {
   MYSQL_RES *result;
   char buff[NAME_LEN * 2 + 64], column_buff[NAME_LEN * 2 + 64];
-  char *current_db = strdup(stmt->Connection->mariadb->db);
+  char *current_db;
+  if (stmt->Connection->mariadb->db)
+  {
+    current_db = strdup(stmt->Connection->mariadb->db);
+  }
+  else
+  {
+    current_db = NULL;
+  }
+  if (table_length <= 0 || !table)
+  {
+    return NULL;
+  }
 
   /* If a catalog was specified, we have to change working catalog
      to be able to use mysql_list_fields. */
-  int need_db_change = catalog_length && !strcmp(current_db, catalog);
+  int need_db_change = !current_db || (catalog_length > 0 && catalog && strcmp(current_db, catalog));
   if (need_db_change)
   {
-    need_db_change = 1;
     strncpy(buff, (const char*)catalog, catalog_length);
     buff[catalog_length]= '\0';
 
@@ -1533,13 +1572,20 @@ MADB_ListFields(MADB_Stmt   *stmt,
       return NULL;
     }
   }
-
-  strncpy(buff, (const char*)table, table_length);
-  buff[table_length]= '\0';
-  strncpy(column_buff, (const char*)column_like, column_length);
-  column_buff[column_length]= '\0';
-
-  result = mysql_list_fields(stmt->Connection->mariadb, buff, column_buff);
+  strcpy(buff, "`");
+  strncat(buff, (const char*)table, table_length);
+  strcat(buff, "`");
+  if (column_length > 0)
+  {
+    strncpy(column_buff, (const char *) column_like, column_length);
+    column_buff[column_length] = '\0';
+    fflush(stdout);
+    result = mysql_list_fields(stmt->Connection->mariadb, buff, column_buff);
+  }
+  else
+  {
+    result = mysql_list_fields(stmt->Connection->mariadb, buff, NULL);
+  }
   if (!result)
   {
     MADB_SetError(&stmt->Error, MADB_ERR_HY001, mysql_error(stmt->Connection->mariadb), mysql_errno(stmt->Connection->mariadb));
@@ -1547,7 +1593,7 @@ MADB_ListFields(MADB_Stmt   *stmt,
     return NULL;
   }
 
-  if (catalog_length && need_db_change)
+  if (current_db && need_db_change)
   {
     if (mysql_select_db(stmt->Connection->mariadb, current_db))
     {

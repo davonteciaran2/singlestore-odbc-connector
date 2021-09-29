@@ -51,6 +51,7 @@ SQLRETURN constructField(MA_MEM_ROOT *alloc, MYSQL_FIELD* dest, const char* fiel
         case MYSQL_TYPE_STRING:
         case MYSQL_TYPE_VAR_STRING:
             dest->charsetnr = UTF8_CHARSETNR;
+            // TODO: read this from connection
             length += 1; // Terminal symbol
             break;
         default:
@@ -174,5 +175,6 @@ SQLRETURN MADB_FakeRequest(MADB_Stmt *Stmt, const char * const *fields, const en
     Stmt->stmt->result_cursor = Stmt->stmt->result.data;
     Stmt->State = MADB_SS_PREPARED;
     MADB_InstallStmt(Stmt, Stmt->stmt);
+    Stmt->AffectedRows = -1;
     return SQL_SUCCESS;
 }

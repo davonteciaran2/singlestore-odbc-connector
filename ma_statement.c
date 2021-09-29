@@ -3018,7 +3018,7 @@ SQLRETURN MADB_FetchCsps(MADB_Stmt *Stmt)
  because it determines the proper function based on prepared statements mode.*/
 SQLRETURN MADB_StmtFetchColumn(MADB_Stmt* Stmt, MYSQL_BIND *bind, unsigned int column, unsigned long offset)
 {
-    return MADB_SSPS_DISABLED(Stmt) ? MADB_FetchColumnCsps(Stmt, bind, column, offset) :
+    return MADB_SSPS_DISABLED(Stmt) || (Stmt->stmt->result.type == MYSQL_FAKE_RESULT) ? MADB_FetchColumnCsps(Stmt, bind, column, offset) :
            mysql_stmt_fetch_column(Stmt->stmt, bind, column, offset);
 }
 /* }}}*/
@@ -4693,9 +4693,27 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
   MYSQL_RES *tables_res, *columns_res, *show_columns_res;
   MYSQL_ROW table_row, columns_row;
   unsigned long *table_lengths, *columns_lengths;
+  SQLSMALLINT concise_data_type, odbc_data_type;
 
-  FieldWithTypeList *tableFields;
-  char *S2TypeNameFull;
+  FieldDescrList *tableFields;
+  FieldDescr *S2FieldDescr;
+
+  if (CatalogName && NameLength1 <= 0)
+  {
+    NameLength1 = strlen(CatalogName);
+  }
+  if (SchemaName && NameLength2 <= 0)
+  {
+    NameLength2 = strlen(SchemaName);
+  }
+  if (TableName && NameLength3 <= 0)
+  {
+    NameLength3 = strlen(TableName);
+  }
+  if (ColumnName && NameLength4 <= 0)
+  {
+    NameLength4 = strlen(ColumnName);
+  }
 
   // get the list of matching tables
   tables_res = MADB_ShowTables(Stmt, CatalogName, NameLength1, TableName, NameLength3, TRUE);
@@ -4735,7 +4753,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
 
     int ordinal_number = 0;
     // process columns to match ODBC spec
-    while (field = mysql_fetch_field(columns_res))
+    while ((field = mysql_fetch_field(columns_res)))
     {
       if (n_rows >= allocated_rows)
       {
@@ -4749,10 +4767,18 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
         }
         formatted_table_ptr = temp_ptr;
       }
-      current_row_ptr = formatted_table_ptr[n_rows++] = (char**)calloc(SQL_COLUMNS_FIELD_COUNT, sizeof(char*));
+      current_row_ptr = formatted_table_ptr[n_rows] = (char**)calloc(SQL_COLUMNS_FIELD_COUNT, sizeof(char*));
       // printf("field %-19s has mysql type %-3d and length %-10lu decimals %-3d flags %-8d charsetnr %-2d max_length %lu\n",field->name, field->type, field->length, field->decimals, field->flags, field->charsetnr, field->max_length);
 
-      SQLSMALLINT concise_data_type = MapMariadDbToOdbcType(field, Stmt->Connection->IsAnsi);
+      concise_data_type = MapMariadDbToOdbcType(field, Stmt->Connection->IsAnsi);
+      if (Stmt->Connection->Environment->OdbcVersion == SQL_OV_ODBC2)
+      {
+        odbc_data_type = MapToV2Type(concise_data_type);
+      }
+      else
+      {
+        odbc_data_type = concise_data_type;
+      }
       SQLSMALLINT sql_data_type = MADB_GetTypeFromConciseType(concise_data_type);
 
       MADB_TypeInfo* odbc_type_info = GetTypeInfo(concise_data_type, field);
@@ -4765,10 +4791,19 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
         sprintf(err_msg, "Failed to get type data for SQL Type %d MYSQL type %d\n", concise_data_type, field->type);
         return MADB_SetError(&Stmt->Error, MADB_ERR_HY001, err_msg, 0);
       }
-      S2TypeNameFull = GetFieldTypeFull(field->name, tableFields);
-
+      S2FieldDescr = GetFieldDescr(field->name, tableFields);
+      if (S2FieldDescr)
+      {
+        ++n_rows;
+      }
+      else
+      {
+        // in this case field is filered by column_like in `SHOW COLUMNS FROM ... LIKE <column_like>`
+        // so we should skip it indeed. mysql_list_fields doesn't apply filter for some reason
+        continue;
+      }
       // TABLE_CAT
-      is_alloc_fail |= !(uintptr_t)(current_row_ptr[0] = strdup(NameLength1 ? CatalogName : Stmt->Connection->mariadb->db));
+      is_alloc_fail |= !(uintptr_t)(current_row_ptr[0] = strdup(NameLength1 > 0 ? CatalogName : Stmt->Connection->mariadb->db));
       // TABLE_SCHEM
       current_row_ptr[1] = NULL;
       // TABLE_NAME
@@ -4776,11 +4811,11 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       // COLUMN_NAME
       is_alloc_fail |= !(uintptr_t)(current_row_ptr[3] = strdup(field->name));
       // DATA_TYPE
-      is_alloc_fail |= allocAndFormatInt(&current_row_ptr[4], concise_data_type);
+      is_alloc_fail |= allocAndFormatInt(&current_row_ptr[4], odbc_data_type);
       // TYPE_NAME
-      is_alloc_fail |= !(uintptr_t)(current_row_ptr[5] = strdup(S2TypeNameFull));
+      is_alloc_fail |= !(uintptr_t)(current_row_ptr[5] = strdup(S2FieldDescr->FieldTypeS2));
       // COLUMN_SIZE
-      if ((column_char_length = S2_GetColumnSize(field, odbc_type_info, S2TypeNameFull)) != SQL_NO_TOTAL)
+      if ((column_char_length = S2_GetColumnSize(field, odbc_type_info, S2FieldDescr->FieldTypeS2)) != SQL_NO_TOTAL)
         is_alloc_fail |= allocAndFormatInt(&current_row_ptr[6], column_char_length);
       // BUFFER_LENGTH
       if ((column_length = S2_GetCharacterOctetLength(field, odbc_type_info)) != SQL_NO_TOTAL)
@@ -4799,8 +4834,10 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       // REMARKS
       current_row_ptr[11] = NULL;
       // COLUMN_DEF
-      if (field->def_length)
-        is_alloc_fail |= !(uintptr_t)(current_row_ptr[12] = strdup(field->def));
+      if (S2FieldDescr->DefaultValue)
+      {
+        is_alloc_fail |= !(uintptr_t)(current_row_ptr[12] = strdup(S2FieldDescr->DefaultValue));
+      }
       // SQL_DATA_TYPE (non-concise)
       is_alloc_fail |= allocAndFormatInt(&current_row_ptr[13], sql_data_type);
       // SQL_DATETIME_SUB
@@ -4814,7 +4851,6 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       }
       // ORDINAL_POSITION
       is_alloc_fail |= allocAndFormatInt(&current_row_ptr[16], ++ordinal_number);
-
       if (is_alloc_fail)
       {
         mysql_free_result(columns_res);
@@ -4823,6 +4859,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
         return MADB_SetError(&Stmt->Error, MADB_ERR_HY001, "Failed to allocate memory for columns data", 0);
       }
     }
+    FreeFieldDescrList(tableFields);
     mysql_free_result(columns_res);
     mysql_free_result(show_columns_res);
   }
