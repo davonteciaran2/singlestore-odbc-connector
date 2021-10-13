@@ -294,11 +294,11 @@ char *MADB_GetTypeName(MYSQL_FIELD *Field)
   case MYSQL_TYPE_NULL:
     return "null";
   case MYSQL_TYPE_TINY:
-    return (Field->flags & NUM_FLAG) ? "tinyint" : "char";
+    return (Field->flags & NUM_FLAG) ? ((Field->flags & UNSIGNED_FLAG) ? "tinyint unsigned" : "tinyint") : "char";
   case MYSQL_TYPE_SHORT:
-    return "smallint";
+    return (Field->flags & UNSIGNED_FLAG) ? "smallint unsigned" : "smallint";
   case MYSQL_TYPE_LONG:
-    return "int";
+    return (Field->flags & UNSIGNED_FLAG) ? "int unsigned" : "int";
   case MYSQL_TYPE_FLOAT:
     return "float";
   case MYSQL_TYPE_DOUBLE:
@@ -306,9 +306,9 @@ char *MADB_GetTypeName(MYSQL_FIELD *Field)
   case MYSQL_TYPE_TIMESTAMP:
     return "timestamp";
   case MYSQL_TYPE_LONGLONG:
-    return "bigint";
+    return (Field->flags & UNSIGNED_FLAG) ? "bigint unsigned" : "bigint";
   case MYSQL_TYPE_INT24:
-    return "mediumint";
+    return (Field->flags & UNSIGNED_FLAG) ? "mediumint unsigned" : "mediumint";
   case MYSQL_TYPE_DATE:
     return "date";
   case MYSQL_TYPE_TIME:
@@ -462,7 +462,7 @@ size_t MADB_GetDisplaySize(MYSQL_FIELD *Field, MARIADB_CHARSET_INFO *charset)
   case MYSQL_TYPE_NULL:
     return 1;
   case MYSQL_TYPE_BIT:
-    return (Field->length == 1) ? 1 : (Field->length + 7) / 8 * 2;
+    return 16;
   case MYSQL_TYPE_TINY:
     return 4 - test(Field->flags & UNSIGNED_FLAG);
   case MYSQL_TYPE_SHORT:
@@ -533,7 +533,7 @@ size_t MADB_GetOctetLength(MYSQL_FIELD *Field, unsigned short MaxCharLen)
   case MYSQL_TYPE_NULL:
     return 1;
   case MYSQL_TYPE_BIT:
-    return (Field->length + 7) / 8;
+    return 8;
   case MYSQL_TYPE_TINY:
     return 1;
   case MYSQL_TYPE_YEAR:
@@ -646,9 +646,7 @@ SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field, my_bool is_ansi)
   int sql_longvarchar = is_ansi ? SQL_LONGVARCHAR : SQL_WLONGVARCHAR;
   switch (field->type) {
     case MYSQL_TYPE_BIT:
-      if (field->length > 1)
-        return SQL_BINARY;
-      return SQL_BIT;
+      return SQL_BINARY;
     case MYSQL_TYPE_NULL:
       return sql_varchar;
     case MYSQL_TYPE_TINY:
@@ -660,7 +658,7 @@ SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field, my_bool is_ansi)
     case MYSQL_TYPE_LONG:
       return SQL_INTEGER;
     case MYSQL_TYPE_FLOAT:
-      return SQL_REAL;
+      return SQL_FLOAT;
     case MYSQL_TYPE_DOUBLE:
       return SQL_DOUBLE;
     case MYSQL_TYPE_TIMESTAMP:

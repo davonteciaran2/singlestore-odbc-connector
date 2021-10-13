@@ -30,13 +30,8 @@
 */
 SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, const char *full_type_name)
 {
-  SQLINTEGER length;
+  SQLINTEGER length = MIN(field->length, INT32_MAX);
   // cap at INT_MAX32 due to signed value in the ODBC spec
-  if (field->length > INT32_MAX)
-    length = INT32_MAX;
-  else
-    length = field->length;
-
   SQLSMALLINT char_size = 1;
   if (field->charsetnr != BINARY_CHARSETNR)
   {
@@ -45,8 +40,7 @@ SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, c
   }
 
   // types "datetime" and "datetime(6)" are not distinguishable by the
-  // respective field info. 
-  // it's 
+  // respective field info.
   int is_datetime_adjustment_needed = (!strcmp(full_type_name, "datetime") || !strcmp(full_type_name, "timestamp")) ? 1 : 0;
 
   switch (field->type) {
@@ -61,6 +55,7 @@ SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, c
   case MYSQL_TYPE_YEAR:
   case MYSQL_TYPE_DATE:
   case MYSQL_TYPE_TIME:
+  case MYSQL_TYPE_BIT: // In SingleStore BIT(n) is treated as a binary vector of 8 bytes
     return odbc_type_info->ColumnSize;
   case MYSQL_TYPE_NEWDATE:
   case MYSQL_TYPE_TIMESTAMP:
@@ -72,15 +67,6 @@ SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, c
     return (length -
             (!(field->flags & UNSIGNED_FLAG) ? 1 : 0) - /* sign? */
             (field->decimals ? 1 : 0));             /* decimal point? */
-
-  case MYSQL_TYPE_BIT:
-    /*
-      We treat a BIT(n) as a SQL_BIT if n == 1, otherwise we treat it
-      as a SQL_BINARY, so length is (bits + 7) / 8.
-    */
-    if (length == 1)
-      return 1;
-    return (length + 7) / 8;
 
   case MYSQL_TYPE_GEOMETRY:
   case MYSQL_TYPE_ENUM:
@@ -112,12 +98,8 @@ SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, c
 */
 SQLLEN S2_GetCharacterOctetLength(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info)
 {
-  SQLLEN length;
+  SQLLEN length = MIN(INT32_MAX, field->length);
   /* cap at INT_MAX32 due to signed value */
-  if (field->length > INT32_MAX)
-    length = INT32_MAX;
-  else
-    length = field->length;
 
   switch (field->type) {
   case MYSQL_TYPE_TINY:
@@ -158,14 +140,6 @@ SQLLEN S2_GetCharacterOctetLength(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_i
   case MYSQL_TYPE_NEWDATE:
     return sizeof(SQL_TIMESTAMP_STRUCT);
 
-  case MYSQL_TYPE_BIT:
-    /*
-      We treat a BIT(n) as a SQL_BIT if n == 1, otherwise we treat it
-      as a SQL_BINARY, so length is (bits + 7) / 8. field->length has
-      the number of bits.
-    */
-    return (length + 7) / 8;
-
   case MYSQL_TYPE_ENUM:
   case MYSQL_TYPE_SET:
   case MYSQL_TYPE_VARCHAR:
@@ -179,6 +153,7 @@ SQLLEN S2_GetCharacterOctetLength(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_i
   case MYSQL_TYPE_MEDIUM_BLOB:
   case MYSQL_TYPE_LONG_BLOB:
   case MYSQL_TYPE_BLOB:
+  case MYSQL_TYPE_BIT: 
     return odbc_type_info->ColumnSize;
   }
 

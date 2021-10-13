@@ -26,18 +26,20 @@ int run_sql_columns(SQLHANDLE Stmt, const SQLSMALLINT *ExpDataType, const SQLSMA
     SQLCHAR *ExpTableCat = my_schema;
     SQLCHAR *ExpTableName = "t_types";
 
-    char *ExpTypeName[33] = {"tinyint", "smallint", "mediumint", "int unsigned", "bigint unsigned", "double", "float",
+    char *ExpTypeName[33] = {"tinyint", "smallint", "mediumint", "int(10) unsigned", "bigint(20) unsigned", "double", "float",
                              "decimal", "date", "time", "datetime", "datetime", "timestamp", "timestamp", "year",
                              "char", "binary", "varchar", "varbinary", "longtext", "mediumtext", "text", "tinytext",
                              "longblob", "mediumblob", "blob", "tinyblob", "bit",
                              "json", "geography", "geographypoint", "enum", "set"};
     SQLINTEGER ExpColSize[33] = {3, 5, 7, 10, 20, 22, 12, 10, 10, 8, 19, 26, 19, 26, 4, 11, 1, 13, 17,
-                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 1431655765 : 2147483647,
-                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 5592405 : 16777215,
-                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 21845 : 65535,
-                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 85 : 255, 2147483647, 16777215, 65535, 255, 1, -1, -1, -1, 1,
+                                 // values below are computed as maximum memory for type divided by the char size in the default charset.
+                                 // Default charset is UTF8MB3 for server older than 7.5.0, UTF8MB4 starting with 7.5
+                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 1073741824 : 1431655765,
+                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 4194304 : 5592405,
+                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 16384 : 21845,
+                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 64 : 85, 2147483647, 16777215, 65535, 255, 8, -1, -1, -1, 1,
                                  1};
-    SQLSMALLINT ExpDecimalDigits[33] = {0, 0, 0, 0, 0, 6, 0, 5, 0, 0, 0, 6, 0, 6,
+    SQLSMALLINT ExpDecimalDigits[33] = {0, 0, 0, 0, 0, -1, -1, 5, -1, 0, 0, 6, 0, 6,
                                         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     SQLSMALLINT ExpNumPrecRadix[33] = {10, 10, 10, 10, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1,
                                        10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
@@ -99,7 +101,7 @@ int run_sql_columns(SQLHANDLE Stmt, const SQLSMALLINT *ExpDataType, const SQLSMA
         ExpColName[1] = numOfRowsFetched >= 26 ? (numOfRowsFetched % 26) + 'a' : '\0';
         FAIL_IF(_stricmp(colName, ExpColName) != 0, "Wrong COLUMN_NAME returned!");
         FAIL_IF(dataType != ExpDataType[numOfRowsFetched], "Wrong DATA_TYPE returned!");
-        FAIL_IF(_stricmp(typeName, ExpTypeName[numOfRowsFetched]) != 0, "Wrong TYPE_NAME returned!");
+        FAIL_IF(_strnicmp(typeName, ExpTypeName[numOfRowsFetched], strlen(ExpTypeName[numOfRowsFetched])) != 0, "Wrong TYPE_NAME returned!");
 
         if (ExpColSize[numOfRowsFetched] != SQL_NULL_DATA) {
             FAIL_IF(columnSize != ExpColSize[numOfRowsFetched], "Wrong COLUMN_SIZE returned!");
@@ -108,6 +110,8 @@ int run_sql_columns(SQLHANDLE Stmt, const SQLSMALLINT *ExpDataType, const SQLSMA
             FAIL_IF(decimalDigits != ExpDecimalDigits[numOfRowsFetched], "Wrong DECIMAL_DIGITS returned!");
         }
         if (ExpNumPrecRadix[numOfRowsFetched] != SQL_NULL_DATA) {
+            if (numPrecRadix != ExpNumPrecRadix[numOfRowsFetched])
+                printf("ouch\n");
             FAIL_IF(numPrecRadix != ExpNumPrecRadix[numOfRowsFetched], "Wrong NUM_PREC_RADIX returned!");
         }
         FAIL_IF(sqlDataType != ExpSqlDataType[numOfRowsFetched], "Wrong SQL_DATA_TYPE returned!");
@@ -133,7 +137,7 @@ ODBC_TEST(t_columns3U) {
                                    SQL_TYPE_TIMESTAMP, SQL_TYPE_TIMESTAMP, SQL_SMALLINT,
                                    SQL_WCHAR, SQL_BINARY, SQL_WVARCHAR, SQL_VARBINARY, SQL_WLONGVARCHAR,
                                    SQL_WLONGVARCHAR, SQL_WLONGVARCHAR, SQL_WLONGVARCHAR,
-                                   SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BIT,
+                                   SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BINARY,
                                    SQL_WLONGVARCHAR, SQL_VARBINARY, SQL_VARBINARY, SQL_WVARCHAR, SQL_WVARCHAR};
     SQLSMALLINT ExpSqlDataType[33] = {SQL_TINYINT, SQL_SMALLINT, SQL_INTEGER, SQL_INTEGER, SQL_BIGINT, SQL_DOUBLE,
                                       SQL_FLOAT,
@@ -141,7 +145,7 @@ ODBC_TEST(t_columns3U) {
                                       SQL_DATETIME, SQL_DATETIME, SQL_SMALLINT,
                                       SQL_WCHAR, SQL_BINARY, SQL_WVARCHAR, SQL_VARBINARY, SQL_WLONGVARCHAR,
                                       SQL_WLONGVARCHAR, SQL_WLONGVARCHAR, SQL_WLONGVARCHAR,
-                                      SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BIT,
+                                      SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BINARY,
                                       SQL_WLONGVARCHAR, SQL_VARBINARY, SQL_VARBINARY, SQL_WVARCHAR, SQL_WVARCHAR};
 
     SQLHANDLE henv1;
@@ -182,16 +186,16 @@ ODBC_TEST(t_columns3A) {
                                    SQL_TYPE_TIMESTAMP, SQL_TYPE_TIMESTAMP, SQL_SMALLINT,
                                    SQL_CHAR, SQL_BINARY, SQL_VARCHAR, SQL_VARBINARY, SQL_LONGVARCHAR,
                                    SQL_LONGVARCHAR, SQL_LONGVARCHAR, SQL_LONGVARCHAR,
-                                   SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BIT,
-                                   SQL_LONGVARCHAR, SQL_VARBINARY, SQL_VARBINARY, SQL_VARCHAR, SQL_VARCHAR};
+                                   SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BINARY,
+                                   SQL_LONGVARCHAR, SQL_CHAR, SQL_CHAR, SQL_VARCHAR, SQL_VARCHAR};
     SQLSMALLINT ExpSqlDataType[33] = {SQL_TINYINT, SQL_SMALLINT, SQL_INTEGER, SQL_INTEGER, SQL_BIGINT, SQL_DOUBLE,
                                       SQL_FLOAT,
                                       SQL_DECIMAL, SQL_DATETIME, SQL_DATETIME, SQL_DATETIME, SQL_DATETIME,
                                       SQL_DATETIME, SQL_DATETIME, SQL_SMALLINT,
                                       SQL_CHAR, SQL_BINARY, SQL_VARCHAR, SQL_VARBINARY, SQL_LONGVARCHAR,
                                       SQL_LONGVARCHAR, SQL_LONGVARCHAR, SQL_LONGVARCHAR,
-                                      SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BIT,
-                                      SQL_LONGVARCHAR, SQL_VARBINARY, SQL_VARBINARY, SQL_VARCHAR, SQL_VARCHAR};
+                                      SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BINARY,
+                                      SQL_LONGVARCHAR, SQL_CHAR, SQL_CHAR, SQL_VARCHAR, SQL_VARCHAR};
 
     SQLHANDLE henv1;
     SQLHANDLE Connection1;
@@ -277,16 +281,16 @@ ODBC_TEST(t_columns2A) {
                                    SQL_TIMESTAMP, SQL_TIMESTAMP, SQL_SMALLINT,
                                    SQL_CHAR, SQL_BINARY, SQL_VARCHAR, SQL_VARBINARY, SQL_LONGVARCHAR,
                                    SQL_LONGVARCHAR, SQL_LONGVARCHAR, SQL_LONGVARCHAR,
-                                   SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BIT,
-                                   SQL_LONGVARCHAR, SQL_VARBINARY, SQL_VARBINARY, SQL_VARCHAR, SQL_VARCHAR};
+                                   SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BINARY,
+                                   SQL_LONGVARCHAR, SQL_CHAR, SQL_CHAR, SQL_VARCHAR, SQL_VARCHAR};
     SQLSMALLINT ExpSqlDataType[33] = {SQL_TINYINT, SQL_SMALLINT, SQL_INTEGER, SQL_INTEGER, SQL_BIGINT, SQL_DOUBLE,
                                       SQL_FLOAT,
                                       SQL_DECIMAL, SQL_DATETIME, SQL_DATETIME, SQL_DATETIME, SQL_DATETIME,
                                       SQL_DATETIME, SQL_DATETIME, SQL_SMALLINT,
                                       SQL_CHAR, SQL_BINARY, SQL_VARCHAR, SQL_VARBINARY, SQL_LONGVARCHAR,
                                       SQL_LONGVARCHAR, SQL_LONGVARCHAR, SQL_LONGVARCHAR,
-                                      SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BIT,
-                                      SQL_LONGVARCHAR, SQL_VARBINARY, SQL_VARBINARY, SQL_VARCHAR, SQL_VARCHAR};
+                                      SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_LONGVARBINARY, SQL_BINARY,
+                                      SQL_LONGVARCHAR, SQL_CHAR, SQL_CHAR, SQL_VARCHAR, SQL_VARCHAR};
 
     SQLHANDLE henv1;
     SQLHANDLE Connection1;

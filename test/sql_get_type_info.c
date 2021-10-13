@@ -27,6 +27,8 @@ void get_conn_string(char* c) {
 }
 
 int check_stmt_correct_type_info(const MADB_TypeInfo* const ExpTypeInfo, MADB_TypeInfo* const RecTypeInfo, SQLLEN cpSize) {
+    if (strcmp(ExpTypeInfo->TypeName, RecTypeInfo->TypeName))
+        printf("boom");
     FAIL_IF_NE_STR(ExpTypeInfo->TypeName, RecTypeInfo->TypeName, "Wrong TYPE_INFO returned");
     IS(strlen(RecTypeInfo->TypeName));
 
@@ -206,7 +208,7 @@ int run_sql_get_type_info(SQLHANDLE Stmt1, SQLSMALLINT DataType, MADB_TypeInfo *
     FAIL_IF_NE_INT(TYPE_INFO_FIELDS_COUNT, numResultCols, "Wrong number of result columns returned");
     while (SQL_SUCCEEDED(SQLFetch(Stmt1))) {
         if(numOfRowsFetched >= expTypeInfoCount) {
-            fprintf(stdout, "Unexpected row %s (File: %s Line: %d)\n", recTypeInfo.TypeName, __FILE__, __LINE__);
+            fprintf(stdout, "Unexpected row %s (File: %s:%d)\n", recTypeInfo.TypeName, __FILE__, __LINE__);
         } else if ((rc = check_stmt_correct_type_info(&ExpTypeInfo[numOfRowsFetched], &recTypeInfo, cpSize)) != OK) {
             return rc;
         }

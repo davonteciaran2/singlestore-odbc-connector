@@ -777,7 +777,7 @@ do {\
   long long local_exp = (exp), local_got = (got);\
   if (local_exp != local_got)\
     {\
-        fprintf(stdout, "%s(exp: %lld, got: %lld) (File: %s Line: %d)\n", message, local_exp, local_got, __FILE__, __LINE__);\
+        fprintf(stdout, "%s(exp: %lld, got: %lld) (File: %s:%d)\n", message, local_exp, local_got, __FILE__, __LINE__);\
         return FAIL;\
     }\
 } while(0)
@@ -785,14 +785,14 @@ do {\
 #define FAIL_IF_NE_STR(exp,got,message)\
   if (_stricmp((exp), (got)) != 0)\
     {\
-        fprintf(stdout, "%s(exp: %s, got: %s) (File: %s Line: %d)\n", message, exp, got, __FILE__, __LINE__);\
+        fprintf(stdout, "%s(exp: %s, got: %s) (File: %s:%d)\n", message, exp, got, __FILE__, __LINE__);\
         return FAIL;\
     }
 
 #define FAIL_IF(expr,message)\
   if (expr)\
     {\
-    fprintf(stdout, "%s (File: %s Line: %d)\n", message, __FILE__, __LINE__);\
+    fprintf(stdout, "%s (File: %s:%d)\n", message, __FILE__, __LINE__);\
     return FAIL;\
     }
 

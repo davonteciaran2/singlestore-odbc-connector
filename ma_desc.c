@@ -340,7 +340,7 @@ void MADB_FixOctetLength(MADB_DescRecord *Record)
     Record->OctetLength= 2;
     break;
   case SQL_INTEGER:
-  case SQL_REAL:
+  case SQL_FLOAT:
     Record->OctetLength= 4;
     break;
   case SQL_BIGINT:
@@ -455,7 +455,7 @@ MADB_FixIrdRecord(MADB_Stmt *Stmt, MADB_DescRecord *Record)
     Record->Precision= (SQLSMALLINT)Record->OctetLength - 2;
     /*Record->Scale= Fields[i].decimals;*/
     break;
-  case SQL_REAL:
+  case SQL_FLOAT:
     /* Float*/
     Record->NumPrecRadix= 2;
     Record->Precision= (SQLSMALLINT)Record->OctetLength - 2;
