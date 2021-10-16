@@ -534,7 +534,7 @@ MADB_FixIrdRecord(MADB_Stmt *Stmt, MADB_DescRecord *Record)
 
 /* {{{ MADB_FixColumnDataTypes */
 my_bool
-MADB_FixColumnDataTypes(MADB_Stmt *Stmt, MADB_ShortTypeInfo *ColTypesArr)
+MADB_FixColumnDataTypes(MADB_Stmt *Stmt, const MADB_ShortTypeInfo *ColTypesArr)
 {
   SQLSMALLINT     i;
   MADB_DescRecord *Record= NULL;

@@ -343,9 +343,9 @@ ODBC_TEST(t_sqlprocedurecolumns)
      19,     8,      0,  10,  SQL_NULLABLE, "", 0,  SQL_BIGINT,   0,  0,    5,  "YES"},
 
     /*cat    schem  proc_name                  col_name     col_type         data_type  type_name */
-    {my_schema, 0,     "procedure_columns_test1", "re_param6", SQL_PARAM_INPUT, SQL_FLOAT,  "float",
+    {my_schema, 0,     "procedure_columns_test1", "re_param6", SQL_PARAM_INPUT, SQL_REAL,  "float",
     /*size buf_len  dec radix  nullable      rem def sql_data_type sub octet pos nullable*/
-      4,   4,       2,  10,     SQL_NULLABLE, "", 0,  SQL_FLOAT,     0,  0,    6,  "YES"},
+      4,   4,       2,  10,     SQL_NULLABLE, "", 0,  SQL_REAL,     0,  0,    6,  "YES"},
 
     /*cat    schem  proc_name                  col_name     col_type          data_type    type_name */
     {my_schema, 0,     "procedure_columns_test1", "re_param7", SQL_PARAM_INPUT, SQL_DOUBLE,  "double",
@@ -378,9 +378,9 @@ ODBC_TEST(t_sqlprocedurecolumns)
       ServerNotOlderThan(Connection, 7, 5, 0) ? 22 : 50,  8,       ServerNotOlderThan(Connection, 7, 5, 0) ? 6 : 31,  10,     SQL_NULLABLE, "", 0,  SQL_DOUBLE,   0,  0,    13,  "YES"},
 
     /*cat    schem  proc_name                  col_name     col_type         data_type  type_name */
-    { my_schema, 0,     "procedure_columns_test1", "re_param13", SQL_PARAM_INPUT, SQL_FLOAT,  "float",
+    { my_schema, 0,     "procedure_columns_test1", "re_param13", SQL_PARAM_INPUT, SQL_REAL,  "float",
     /*size buf_len  dec radix  nullable      rem def sql_data_type sub octet pos nullable*/
-      ServerNotOlderThan(Connection, 7, 5, 0) ? 12 : 50,   4,       ServerNotOlderThan(Connection, 7, 5, 0) ? 0 : 31,  10,     SQL_NULLABLE, "", 0,  SQL_FLOAT,     0,  0,    14,  "YES" },
+      ServerNotOlderThan(Connection, 7, 5, 0) ? 12 : 50,   4,       ServerNotOlderThan(Connection, 7, 5, 0) ? 0 : 31,  10,     SQL_NULLABLE, "", 0,  SQL_REAL,     0,  0,    14,  "YES" },
     /*----------------------------------------------------------------------------------------------------*/
     /*cat    schem  proc_name                  col_name     col_type         data_type          type_name */
     {my_schema, 0,     "procedure_columns_test2", "re_paramA", SQL_PARAM_INPUT, SQL_LONGVARBINARY, "blob",

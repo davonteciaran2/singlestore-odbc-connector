@@ -641,9 +641,9 @@ int MADB_GetDefaultType(int SQLDataType)
        /* It's not quite right to mix here C and SQL types, even though constants are sort of equal */
 SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field, my_bool is_ansi)
 {
-  int sql_char = is_ansi ? SQL_CHAR : SQL_WCHAR;
-  int sql_varchar = is_ansi ? SQL_VARCHAR : SQL_WVARCHAR;
-  int sql_longvarchar = is_ansi ? SQL_LONGVARCHAR : SQL_WLONGVARCHAR;
+  SQLSMALLINT sql_char = is_ansi ? SQL_CHAR : SQL_WCHAR;
+  SQLSMALLINT sql_varchar = is_ansi ? SQL_VARCHAR : SQL_WVARCHAR;
+  SQLSMALLINT sql_longvarchar = is_ansi ? SQL_LONGVARCHAR : SQL_WLONGVARCHAR;
   switch (field->type) {
     case MYSQL_TYPE_BIT:
       return SQL_BINARY;
@@ -658,7 +658,7 @@ SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field, my_bool is_ansi)
     case MYSQL_TYPE_LONG:
       return SQL_INTEGER;
     case MYSQL_TYPE_FLOAT:
-      return SQL_FLOAT;
+      return SQL_REAL;
     case MYSQL_TYPE_DOUBLE:
       return SQL_DOUBLE;
     case MYSQL_TYPE_TIMESTAMP:

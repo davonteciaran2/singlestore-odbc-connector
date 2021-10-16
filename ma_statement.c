@@ -4781,7 +4781,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       }
       SQLSMALLINT sql_data_type = MADB_GetTypeFromConciseType(concise_data_type);
 
-      MADB_TypeInfo* odbc_type_info = GetTypeInfo(concise_data_type, field);
+      const MADB_TypeInfo* odbc_type_info = GetTypeInfo(concise_data_type, field);
       if (!odbc_type_info)
       {
         mysql_free_result(columns_res);
@@ -4798,7 +4798,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       }
       else
       {
-        // in this case field is filered by column_like in `SHOW COLUMNS FROM ... LIKE <column_like>`
+        // in this case field is filtered by column_like in `SHOW COLUMNS FROM ... LIKE <column_like>`
         // so we should skip it indeed. mysql_list_fields doesn't apply filter for some reason
         continue;
       }

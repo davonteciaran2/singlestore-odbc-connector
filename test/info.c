@@ -574,7 +574,7 @@ ODBC_TEST(odbc84_62)
   IS_STR(my_fetch_str(Stmt, params, 6), "precision,scale", sizeof("precision,scale"));
   CHECK_STMT_RC(Stmt, SQLFreeStmt(Stmt, SQL_CLOSE));
 
-  CHECK_STMT_RC(Stmt, SQLGetTypeInfo(Stmt, SQL_FLOAT));
+  CHECK_STMT_RC(Stmt, SQLGetTypeInfo(Stmt, SQL_REAL));
   CHECK_STMT_RC(Stmt, SQLFetch(Stmt));
   IS_STR(my_fetch_str(Stmt, params, 6), "precision,scale", sizeof("precision,scale"));
   CHECK_STMT_RC(Stmt, SQLFreeStmt(Stmt, SQL_CLOSE));
@@ -653,7 +653,7 @@ ODBC_TEST(odbc84_62)
   IS_STR(my_fetch_str(Stmt1, params, 6), "precision,scale", sizeof("precision,scale"));
   CHECK_STMT_RC(Stmt1, SQLFreeStmt(Stmt1, SQL_CLOSE));
 
-  CHECK_STMT_RC(Stmt1, SQLGetTypeInfo(Stmt1, SQL_FLOAT));
+  CHECK_STMT_RC(Stmt1, SQLGetTypeInfo(Stmt1, SQL_REAL));
   CHECK_STMT_RC(Stmt1, SQLFetch(Stmt1));
   IS_STR(my_fetch_str(Stmt1, params, 6), "precision,scale", sizeof("precision,scale"));
   CHECK_STMT_RC(Stmt1, SQLFreeStmt(Stmt1, SQL_CLOSE));
