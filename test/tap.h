@@ -128,7 +128,7 @@ int strcpy_s(char *dest, size_t buffer_size, const char *src)
 
 
 BOOL   UseDsnOnly= FALSE;
-static SQLCHAR *my_dsn=             (SQLCHAR *)"ssodbc_test_a";
+static SQLCHAR *my_dsn=             (SQLCHAR *)"ssodbc_test_w";
 static SQLCHAR *my_uid=             (SQLCHAR *)"root";
 static SQLCHAR *my_pwd=             (SQLCHAR *)"";
 static SQLCHAR *my_schema=          (SQLCHAR *)"odbc_test";
@@ -807,7 +807,7 @@ do {\
   long long local_a= (long long)(A), local_b= (long long)(B);\
   if (local_a != local_b)\
   {\
-    diag("%s %d: %s(%lld)!=%s(%lld)", __FILE__, __LINE__, #A, local_a, #B, local_b);\
+    diag("%s:%d: %s(%lld)!=%s(%lld)", __FILE__, __LINE__, #A, local_a, #B, local_b);\
     return FAIL;\
   }\
 } while(0)
@@ -817,7 +817,7 @@ do {\
   double local_a= (double)(A), local_b= (double)(B);\
   if (local_a - local_b > 1e-7 || local_a - local_b < -1e-7)\
   {\
-    diag("%s %d: %s(%lf)!=%s(%lf)", __FILE__, __LINE__, #A, local_a, #B, local_b);\
+    diag("%s:%d: %s(%lf)!=%s(%lf)", __FILE__, __LINE__, #A, local_a, #B, local_b);\
     return FAIL;\
   }\
 } while(0)
@@ -837,7 +837,7 @@ do {\
   if (ret != (_Expected))\
   {\
     CHECK_STMT_RC(_Stmt, ret);\
-    diag("%s %d: %s returned %d, expected %s(%d)",__FILE__, __LINE__, #_Function, ret, #_Expected, _Expected);\
+    diag("%s:%d: %s returned %d, expected %s(%d)",__FILE__, __LINE__, #_Function, ret, #_Expected, _Expected);\
     return FAIL;\
   }\
 } while(0)
@@ -848,7 +848,7 @@ do {\
   if (ret != (Expected))\
   {\
     CHECK_DESC_RC(_Desc, ret);\
-    diag("%s %d: %s returned %d, expected %s(%d)",__FILE__, __LINE__, #Function, ret, #Expected, Expected);\
+    diag("%s:%d: %s returned %d, expected %s(%d)",__FILE__, __LINE__, #Function, ret, #Expected, Expected);\
     return FAIL;\
   }\
 } while(0)
@@ -1059,7 +1059,7 @@ SQLHANDLE DoConnect(SQLHANDLE Connection, BOOL DoWConnect,
     if (SQL_SUCCEEDED(rc))
     {
       /* ANSI driver file name contains a.{dll|so} */
-      unicode_driver= strstr((char*)driver_name, "a.") == NULL ? UNICODE_DRIVER : ANSI_DRIVER;
+      unicode_driver= strstr((char*)driver_name, "a.") ? ANSI_DRIVER : UNICODE_DRIVER;
     }
   }
 
@@ -1171,26 +1171,33 @@ int reset_changed_server_variables(void)
 
 int connect_and_run_tests(MA_ODBC_TESTS *tests, BOOL ProvideWConnection, BOOL NoSSPS)
 {
-    int         rc, i=1, all_tests = 0, failed=0;
-    SQLWCHAR   *buff_before_test;
-    char        comment[256];
+  int         rc, i=1, all_tests = 0, failed=0;
+  SQLWCHAR   *buff_before_test;
+  char        comment[256];
+  char        driver_name[256];
+  SQLSMALLINT driver_name_len;
 
-    if (ODBC_Connect(&Env,&Connection,&Stmt) == FAIL)
+  if (ODBC_Connect(&Env,&Connection,&Stmt) == FAIL)
+  {
+    odbc_print_error(SQL_HANDLE_DBC, Connection);
+    ODBC_Disconnect(Env,Connection,Stmt);
+    fprintf(stdout, "HALT! Could not connect to the server\n");
+    return 1;
+  }
+  if (ProvideWConnection && ODBC_ConnectW(Env, &wConnection, &wStmt) == FAIL)
     {
-        odbc_print_error(SQL_HANDLE_DBC, Connection);
-        ODBC_Disconnect(Env,Connection,Stmt);
-        fprintf(stdout, "HALT! Could not connect to the server\n");
-        return 1;
+      odbc_print_error(SQL_HANDLE_DBC, wConnection);
+      ODBC_Disconnect(Env, wConnection, wStmt);
+      fprintf(stdout, "HALT! Could not connect to the server with Unicode function\n");
+      return 1;
     }
-    if (ProvideWConnection && ODBC_ConnectW(Env, &wConnection, &wStmt) == FAIL)
-    {
-        odbc_print_error(SQL_HANDLE_DBC, wConnection);
-        ODBC_Disconnect(Env, wConnection, wStmt);
-        fprintf(stdout, "HALT! Could not connect to the server with Unicode function\n");
-        return 1;
-    }
-
-    fprintf(stdout, "1..%d\n", tests_planned);
+  if(SQLGetInfo(Connection, SQL_DRIVER_NAME, driver_name, 256, &driver_name_len))
+  {
+    odbc_print_error(SQL_HANDLE_DBC, Connection);
+    return 1;
+  }
+  fprintf(stdout, "Using driver: %s, my_drivername specified: %s\n", driver_name, my_drivername);
+  fprintf(stdout, "1..%d\n", tests_planned);
     while (tests->title)
     {
         buff_before_test= buff_pos;
@@ -1441,7 +1448,7 @@ do { \
     printHex((char*)val_a, val_len*sizeof(SQLWCHAR)); \
     printf("') != %s('", #b); \
     printHex((char*)val_b, val_len*sizeof(SQLWCHAR)); \
-    printf("') in %s on line %d", __FILE__, __LINE__); \
+    printf("') in %s:%d", __FILE__, __LINE__); \
     printf("\n"); \
     return FAIL;\
   } \

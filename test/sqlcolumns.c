@@ -31,7 +31,7 @@ int run_sql_columns(SQLHANDLE Stmt, const SQLSMALLINT *ExpDataType, const SQLSMA
                              "char", "binary", "varchar", "varbinary", "longtext", "mediumtext", "text", "tinytext",
                              "longblob", "mediumblob", "blob", "tinyblob", "bit",
                              "json", "geography", "geographypoint", "enum", "set"};
-    SQLINTEGER ExpColSize[33] = {3, 5, 7, 10, 20, 22, 12, 10, 10, 8, 19, 26, 19, 26, 4, 11, 1, 13, 17,
+    SQLINTEGER ExpColSize[33] = {3, 5, 7, 10, 20, 15, 7, 10, 10, 8, 19, 26, 19, 26, 4, 11, 1, 13, 17,
                                  // values below are computed as maximum memory for type divided by the char size in the default charset.
                                  // Default charset is UTF8MB3 for server older than 7.5.0, UTF8MB4 starting with 7.5
                                  ServerNotOlderThan(Connection, 7, 5, 0) ? 1073741824 : 1431655765,
@@ -100,18 +100,16 @@ int run_sql_columns(SQLHANDLE Stmt, const SQLSMALLINT *ExpDataType, const SQLSMA
         ExpColName[0] = numOfRowsFetched >= 26 ? (numOfRowsFetched - 26) / 26 + 'a' : (numOfRowsFetched % 26) + 'a';
         ExpColName[1] = numOfRowsFetched >= 26 ? (numOfRowsFetched % 26) + 'a' : '\0';
         FAIL_IF(_stricmp(colName, ExpColName) != 0, "Wrong COLUMN_NAME returned!");
-        FAIL_IF(dataType != ExpDataType[numOfRowsFetched], "Wrong DATA_TYPE returned!");
+        is_num(dataType, ExpDataType[numOfRowsFetched]);
         FAIL_IF(_strnicmp(typeName, ExpTypeName[numOfRowsFetched], strlen(ExpTypeName[numOfRowsFetched])) != 0, "Wrong TYPE_NAME returned!");
 
         if (ExpColSize[numOfRowsFetched] != SQL_NULL_DATA) {
-            FAIL_IF(columnSize != ExpColSize[numOfRowsFetched], "Wrong COLUMN_SIZE returned!");
+            is_num(columnSize, ExpColSize[numOfRowsFetched]);
         }
         if (ExpDecimalDigits[numOfRowsFetched] != SQL_NULL_DATA) {
-            FAIL_IF(decimalDigits != ExpDecimalDigits[numOfRowsFetched], "Wrong DECIMAL_DIGITS returned!");
+            is_num(decimalDigits, ExpDecimalDigits[numOfRowsFetched]);
         }
         if (ExpNumPrecRadix[numOfRowsFetched] != SQL_NULL_DATA) {
-            if (numPrecRadix != ExpNumPrecRadix[numOfRowsFetched])
-                printf("ouch\n");
             FAIL_IF(numPrecRadix != ExpNumPrecRadix[numOfRowsFetched], "Wrong NUM_PREC_RADIX returned!");
         }
         FAIL_IF(sqlDataType != ExpSqlDataType[numOfRowsFetched], "Wrong SQL_DATA_TYPE returned!");
@@ -275,7 +273,7 @@ ODBC_TEST(t_columns2U) {
 }
 
 ODBC_TEST(t_columns2A) {
-    SQLSMALLINT ExpDataType[33] = {SQL_TINYINT, SQL_SMALLINT, SQL_INTEGER, SQL_INTEGER, SQL_BIGINT, SQL_DOUBLE,
+  SQLSMALLINT ExpDataType[33] = {SQL_TINYINT, SQL_SMALLINT, SQL_INTEGER, SQL_INTEGER, SQL_BIGINT, SQL_DOUBLE,
                                    SQL_REAL,
                                    SQL_DECIMAL, SQL_DATE, SQL_TIME, SQL_TIMESTAMP, SQL_TIMESTAMP,
                                    SQL_TIMESTAMP, SQL_TIMESTAMP, SQL_SMALLINT,

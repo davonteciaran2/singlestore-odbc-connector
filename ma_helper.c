@@ -256,7 +256,6 @@ SQLSMALLINT MADB_GetTypeFromConciseType(SQLSMALLINT ConciseType)
 {
   switch (ConciseType)
   {
-    /* todo: support for interval. currently we map only date/time types */
   case SQL_C_DATE:
   case SQL_C_TIME:
   case SQL_C_TIMESTAMP:
