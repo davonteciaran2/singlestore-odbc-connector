@@ -4715,6 +4715,9 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
     NameLength4 = strlen(ColumnName);
   }
 
+  // TODO: set force_utf8mb4 for engine versions where the correct utf8mb4 charsetnr is reported
+  int force_utf8mb4 = single_store_get_server_version(Stmt->Connection->mariadb) >= 70500;
+
   // get the list of matching tables
   tables_res = MADB_ShowTables(Stmt, CatalogName, NameLength1, TableName, NameLength3, TRUE);
   if (!tables_res)
@@ -4819,7 +4822,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       // TYPE_NAME
       is_alloc_fail |= !(uintptr_t)(current_row_ptr[5] = strdup(S2FieldDescr->FieldTypeS2));
       // COLUMN_SIZE
-      if ((column_char_length = S2_GetColumnSize(field, odbc_type_info, S2FieldDescr->FieldTypeS2)) != SQL_NO_TOTAL)
+      if ((column_char_length = S2_GetColumnSize(field, odbc_type_info, S2FieldDescr->FieldTypeS2, force_utf8mb4)) != SQL_NO_TOTAL)
         is_alloc_fail |= allocAndFormatInt(&current_row_ptr[6], column_char_length);
       // BUFFER_LENGTH
       if ((column_length = S2_GetCharacterOctetLength(field, odbc_type_info)) != SQL_NO_TOTAL)

@@ -31,7 +31,7 @@
 #define is_datetime_sql_type(type) \
   ((type) == SQL_TYPE_DATE || (type) == SQL_TYPE_TIME || (type) == SQL_TYPE_TIMESTAMP)
 
-SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, const char *type_name_full);
+SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, const char *type_name_full, BOOL force_utfmb4);
 SQLLEN S2_GetCharacterOctetLength(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info);
 SQLSMALLINT S2_GetDecimalDigits(MYSQL_FIELD *field);
 

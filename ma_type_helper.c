@@ -28,15 +28,21 @@
 
   @return  The column size of the field
 */
-SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, const char *full_type_name)
+SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, const char *full_type_name, BOOL force_utf8mb4)
 {
-  SQLINTEGER length = MIN(field->length, INT32_MAX);
   // cap at INT_MAX32 due to signed value in the ODBC spec
   SQLSMALLINT char_size = 1;
   if (field->charsetnr != BINARY_CHARSETNR)
   {
-    MARIADB_CHARSET_INFO *charset = mariadb_get_charset_by_nr(field->charsetnr);
-    char_size = charset ? charset->char_maxlen : 1;
+    if (force_utf8mb4)
+    {
+      char_size = 4;
+    }
+    else
+    {
+      MARIADB_CHARSET_INFO *charset = mariadb_get_charset_by_nr(field->charsetnr);
+      char_size = charset ? charset->char_maxlen : 1;
+    }
   }
 
   // types "datetime" and "datetime(6)" are not distinguishable by the
@@ -64,7 +70,7 @@ SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, c
 
   case MYSQL_TYPE_DECIMAL:
   case MYSQL_TYPE_NEWDECIMAL:
-    return (length -
+    return (field->length -
             (!(field->flags & UNSIGNED_FLAG) ? 1 : 0) - /* sign? */
             (field->decimals ? 1 : 0));             /* decimal point? */
 
@@ -74,15 +80,13 @@ SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, c
   case MYSQL_TYPE_VARCHAR:
   case MYSQL_TYPE_VAR_STRING:
   case MYSQL_TYPE_STRING:
-    return length / char_size;
+    return MIN(field->length / char_size, INT32_MAX);
   case MYSQL_TYPE_BLOB:
   case MYSQL_TYPE_TINY_BLOB:
   case MYSQL_TYPE_MEDIUM_BLOB:
-    return odbc_type_info->ColumnSize / char_size;
+    return odbc_type_info->ColumnSize / char_size; // TODO: merge this with MYSQL_TYPE_LONG_BLOB when engine reports correct length for these fields
   case MYSQL_TYPE_LONG_BLOB:
-    // NECESSARY EVIL: reported column size for long blob is 2GB instead of 4GB,
-    // so we need to multiply the number of characters by 2 and add 1
-    return odbc_type_info->ColumnSize / char_size * (char_size > 1 ? 2 : 1) + (char_size > 1 ? 1 : 0);
+    return MIN(field->length / char_size, INT32_MAX);
   }
 
   return SQL_NO_TOTAL;

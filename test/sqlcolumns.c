@@ -34,10 +34,10 @@ int run_sql_columns(SQLHANDLE Stmt, const SQLSMALLINT *ExpDataType, const SQLSMA
     SQLINTEGER ExpColSize[33] = {3, 5, 7, 10, 20, 15, 7, 10, 10, 8, 19, 26, 19, 26, 4, 11, 1, 13, 17,
                                  // values below are computed as maximum memory for type divided by the char size in the default charset.
                                  // Default charset is UTF8MB3 for server older than 7.5.0, UTF8MB4 starting with 7.5
-                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 1073741824 : 1431655765,
-                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 4194304 : 5592405,
-                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 16384 : 21845,
-                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 64 : 85, 2147483647, 16777215, 65535, 255, 8, -1, -1, -1, 1,
+                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 1073741823 : 1431655765,
+                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 4194303 : 5592405,
+                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 16383 : 21845,
+                                 ServerNotOlderThan(Connection, 7, 5, 0) ? 63 : 85, 2147483647, 16777215, 65535, 255, 8, -1, -1, -1, 1,
                                  1};
     SQLSMALLINT ExpDecimalDigits[33] = {0, 0, 0, 0, 0, -1, -1, 5, -1, 0, 0, 6, 0, 6,
                                         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
