@@ -66,19 +66,7 @@ SQLRETURN MADB_GetTypeInfo(SQLHSTMT StatementHandle,
   if (Stmt->Connection->Environment->OdbcVersion == SQL_OV_ODBC2)
   {
     /* We need to map time types */
-    switch(DataType) {
-      case SQL_TYPE_TIMESTAMP:
-        DataType=SQL_TIMESTAMP;
-        break;
-      case SQL_TYPE_DATE:
-        DataType= SQL_DATE;
-        break;
-      case SQL_TYPE_TIME:
-        DataType= SQL_TIME;
-        break;
-      default:
-      break;
-    }
+    DataType = MapToV2Type(DataType);
   }
 
   StmtStr[0]= 0;

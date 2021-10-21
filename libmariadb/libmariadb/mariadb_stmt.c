@@ -1509,19 +1509,19 @@ int STDCALL mysql_stmt_fetch(MYSQL_STMT *stmt)
     unsigned char **rows;
     if ((rc= stmt->mysql->methods->db_stmt_fetch_fake(stmt, &rows)))
     {
-        stmt->state= MYSQL_STMT_FETCH_DONE;
-        stmt->mysql->status= MYSQL_STATUS_READY;
-        /* to fetch data again, stmt must be executed again */
-        return(rc);
+      stmt->state= MYSQL_STMT_FETCH_DONE;
+      stmt->mysql->status= MYSQL_STATUS_READY;
+      /* to fetch data again, stmt must be executed again */
+      return(rc);
     }
     rc = stmt->mysql->methods->db_stmt_fetch_to_bind_fake(stmt, rows);
   } else {
     unsigned char *row;
     if ((rc = stmt->mysql->methods->db_stmt_fetch(stmt, &row))) {
-        stmt->state = MYSQL_STMT_FETCH_DONE;
-        stmt->mysql->status = MYSQL_STATUS_READY;
-        /* to fetch data again, stmt must be executed again */
-        return (rc);
+      stmt->state = MYSQL_STMT_FETCH_DONE;
+      stmt->mysql->status = MYSQL_STATUS_READY;
+      /* to fetch data again, stmt must be executed again */
+      return (rc);
     }
     rc = stmt->mysql->methods->db_stmt_fetch_to_bind(stmt, row);
   }
@@ -1535,7 +1535,8 @@ int STDCALL mysql_stmt_fetch(MYSQL_STMT *stmt)
 int STDCALL mysql_stmt_fetch_column(MYSQL_STMT *stmt, MYSQL_BIND *bind, unsigned int column, unsigned long offset)
 {
   if (stmt->state < MYSQL_STMT_USER_FETCHING || column >= stmt->field_count ||
-      stmt->state == MYSQL_STMT_FETCH_DONE)  {
+      stmt->state == MYSQL_STMT_FETCH_DONE)
+  {
     SET_CLIENT_STMT_ERROR(stmt, CR_NO_DATA, SQLSTATE_UNKNOWN, 0);
     return(1);
   }
@@ -1561,7 +1562,6 @@ int STDCALL mysql_stmt_fetch_column(MYSQL_STMT *stmt, MYSQL_BIND *bind, unsigned
       bind[0].error= &bind[0].error_value;
     *bind[0].error= 0;
     bind[0].offset= offset;
-
     save_ptr= stmt->bind[column].u.row_ptr;
     if (stmt->result.type == MYSQL_FAKE_RESULT)
     {

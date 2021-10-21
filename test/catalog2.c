@@ -1402,7 +1402,7 @@ ODBC_TEST(odbc231)
   CHECK_STMT_RC(Stmt, SQLBindCol(Stmt, COLUMN_SIZE, SQL_C_SLONG, &ColumnSize, 0, &ColumnSizeLen));
   CHECK_STMT_RC(Stmt, SQLBindCol(Stmt, BUFFER_LENGTH, SQL_C_ULONG, &BufferLength, 0, &BufferLengthLen));
   CHECK_STMT_RC(Stmt, SQLFetch(Stmt));
-  is_num((unsigned)ColumnSize, 0x55555555);  // TODO: use charset-dependent value, this one is valid for 3-byte utf8
+  is_num((unsigned)ColumnSize, ServerNotOlderThan(Connection, 7, 5, 0) ? 0x55555555 : 0x7fffffff);
   is_num(ColumnSizeLen, sizeof(SQLINTEGER));
   diag("Longtext size: %lu(%lx) type %s %s, buffer length: %lu(%lx) type %s %s", ColumnSize, ColumnSize, OdbcTypeAsString((SQLSMALLINT)Type1, NULL),
     Unsigned1 ? "Unsigned" : "Signed", BufferLength, BufferLength, OdbcTypeAsString((SQLSMALLINT)Type2, NULL), Unsigned2 ? "Unsigned" : "Signed");

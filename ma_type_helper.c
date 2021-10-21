@@ -20,6 +20,7 @@
 #include <mysql.h>
 #include <stdint.h>
 
+// TODO: merge these functions with the ones used in MADB_SetIrdRecord
 /**
   Get the column size (in characters) of a field, as defined at:
     http://msdn2.microsoft.com/en-us/library/ms711786.aspx
@@ -105,45 +106,34 @@ SQLLEN S2_GetCharacterOctetLength(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_i
   SQLLEN length = MIN(INT32_MAX, field->length);
   /* cap at INT_MAX32 due to signed value */
 
-  switch (field->type) {
+  switch (field->type)
+  {
   case MYSQL_TYPE_TINY:
     return 1;
-
   case MYSQL_TYPE_SHORT:
     return 2;
-
   case MYSQL_TYPE_INT24:
     return 3;
-
   case MYSQL_TYPE_LONG:
     return 4;
-
   case MYSQL_TYPE_FLOAT:
     return 4;
-
   case MYSQL_TYPE_DOUBLE:
     return 8;
-
   case MYSQL_TYPE_NULL:
     return 1;
-
   case MYSQL_TYPE_LONGLONG:
     return 8;
-
   case MYSQL_TYPE_YEAR:
     return 2;
-
   case MYSQL_TYPE_DATE:
     return sizeof(SQL_DATE_STRUCT);
-
   case MYSQL_TYPE_TIME:
     return sizeof(SQL_TIME_STRUCT);
-
   case MYSQL_TYPE_TIMESTAMP:
   case MYSQL_TYPE_DATETIME:
   case MYSQL_TYPE_NEWDATE:
     return sizeof(SQL_TIMESTAMP_STRUCT);
-
   case MYSQL_TYPE_ENUM:
   case MYSQL_TYPE_SET:
   case MYSQL_TYPE_VARCHAR:
@@ -160,7 +150,6 @@ SQLLEN S2_GetCharacterOctetLength(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_i
   case MYSQL_TYPE_BIT: 
     return odbc_type_info->ColumnSize;
   }
-
   return SQL_NO_TOTAL;
 }
 
@@ -179,22 +168,20 @@ SQLSMALLINT S2_GetDecimalDigits(MYSQL_FIELD *field)
 {
   switch (field->type)
   {
-    case MYSQL_TYPE_DECIMAL:
-    case MYSQL_TYPE_NEWDECIMAL:
-    case MYSQL_TYPE_DATETIME:
-    case MYSQL_TYPE_TIMESTAMP:
-    case MYSQL_TYPE_TIME:
-      return field->decimals;
-
-    /* All exact numeric types. */
-    case MYSQL_TYPE_TINY:
-    case MYSQL_TYPE_SHORT:
-    case MYSQL_TYPE_LONG:
-    case MYSQL_TYPE_LONGLONG:
-    case MYSQL_TYPE_INT24:
-      return 0;
-
-    default:
-      return SQL_NO_TOTAL;
+  case MYSQL_TYPE_DECIMAL:
+  case MYSQL_TYPE_NEWDECIMAL:
+  case MYSQL_TYPE_DATETIME:
+  case MYSQL_TYPE_TIMESTAMP:
+  case MYSQL_TYPE_TIME:
+    return field->decimals;
+  /* All exact numeric types. */
+  case MYSQL_TYPE_TINY:
+  case MYSQL_TYPE_SHORT:
+  case MYSQL_TYPE_LONG:
+  case MYSQL_TYPE_LONGLONG:
+  case MYSQL_TYPE_INT24:
+    return 0;
+  default:
+    return SQL_NO_TOTAL;
   }
 }

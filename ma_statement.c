@@ -4669,20 +4669,6 @@ void freeData(char ***data, int nRows, int nCols, const short *needFree)
   free(data);
 }
 
-void printData(char ***data, int nRows, int nCols)
-{
-  printf("PRINT DATA...\n");
-  int i, j;
-  for (i = 0; i < nRows; i++)
-  {
-    for (j = 0; j < nCols; j++)
-    {
-      printf(" %s", data[i][j]);
-    }
-    printf("\n");
-  }
-}
-
 /* {{{ MADB_StmtColumnsNoInfoSchema */
 SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
                            char *CatalogName, SQLSMALLINT NameLength1,
@@ -4699,21 +4685,13 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
   FieldDescr *S2FieldDescr;
 
   if (CatalogName && NameLength1 <= 0)
-  {
     NameLength1 = strlen(CatalogName);
-  }
   if (SchemaName && NameLength2 <= 0)
-  {
     NameLength2 = strlen(SchemaName);
-  }
   if (TableName && NameLength3 <= 0)
-  {
     NameLength3 = strlen(TableName);
-  }
   if (ColumnName && NameLength4 <= 0)
-  {
     NameLength4 = strlen(ColumnName);
-  }
 
   // TODO: set force_utf8mb4 for engine versions where the correct utf8mb4 charsetnr is reported
   int force_utf8mb4 = single_store_get_server_version(Stmt->Connection->mariadb) >= 70500;
@@ -4721,9 +4699,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
   // get the list of matching tables
   tables_res = MADB_ShowTables(Stmt, CatalogName, NameLength1, TableName, NameLength3, TRUE);
   if (!tables_res)
-  {
     return Stmt->Error.ReturnValue;
-  }
 
   int n_rows = 0, allocated_rows = 256;
   char ***formatted_table_ptr = (char***)calloc(allocated_rows, sizeof(char**)), ***temp_ptr;
@@ -4771,7 +4747,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
         formatted_table_ptr = temp_ptr;
       }
       current_row_ptr = formatted_table_ptr[n_rows] = (char**)calloc(SQL_COLUMNS_FIELD_COUNT, sizeof(char*));
-      // printf("field %-19s has mysql type %-3d and length %-10lu decimals %-3d flags %-8d charsetnr %-2d max_length %lu\n",field->name, field->type, field->length, field->decimals, field->flags, field->charsetnr, field->max_length);
+      printf("field %-19s has mysql type %-3d and length %-10lu decimals %-3d flags %-8d charsetnr %-2d max_length %lu\n",field->name, field->type, field->length, field->decimals, field->flags, field->charsetnr, field->max_length);
 
       concise_data_type = MapMariadDbToOdbcType(field);
       if (field->charsetnr != BINARY_CHARSETNR && !Stmt->Connection->IsAnsi)

@@ -420,6 +420,7 @@ void            CloseClientCharset(Client_Charset *cc);
 #define MADB_DEFAULT_PRECISION 38
 #define BINARY_CHARSETNR       63
 #define UTF8_CHARSETNR         33
+#define UTF8MB4_CHARSETNR      45
 /* Inexistent param id */
 #define MADB_NOPARAM           -1
 /* Macros to guard communications with the server.

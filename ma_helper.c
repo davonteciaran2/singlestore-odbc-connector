@@ -514,7 +514,6 @@ size_t MADB_GetDisplaySize(MYSQL_FIELD *Field, MARIADB_CHARSET_INFO *charset)
     else
     {
       return Field->length/charset->char_maxlen;
-      // return Field->length; /* we don't look at char_maxlen as each character can take one byte*/
     }
   }
   default:
