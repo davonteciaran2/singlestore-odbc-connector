@@ -47,7 +47,6 @@ SQLRETURN MADB_DescSetField(SQLHDESC DescriptorHandle,
                             SQLINTEGER BufferLength,
                             my_bool isWChar);
 
-my_bool MADB_SetIrdRecord(MADB_Stmt *Stmt, MADB_DescRecord *Record, MYSQL_FIELD *Field);
 my_bool MADB_DescSetIrdMetadata(MADB_Stmt *Stmt, MYSQL_FIELD *Fields, unsigned int NumFields);
 SQLRETURN MADB_DescCopyDesc(MADB_Desc *SrcDesc, MADB_Desc *DestDesc);
 SQLRETURN MADB_DescGetRec(MADB_Desc *Desc,

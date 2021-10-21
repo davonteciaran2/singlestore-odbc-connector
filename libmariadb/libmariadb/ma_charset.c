@@ -549,6 +549,8 @@ static unsigned int check_mb_gb18030_valid(const char * start, const char * end)
 const MARIADB_CHARSET_INFO mariadb_compiled_charsets[] =
 {
   {  33, 1, UTF8_MB3, UTF8_MB3"_general_ci", "", 65001, "UTF-8", 1, 3, mysql_mbcharlen_utf8mb3,  check_mb_utf8mb3_valid},
+  {  45, 1, UTF8_MB4, UTF8_MB4"_general_ci", "", 65001, "UTF-8", 1, 4, mysql_mbcharlen_utf8,  check_mb_utf8_valid},
+  {  46, 1, UTF8_MB4, UTF8_MB4"_bin", "", 65001, "UTF-8", 1, 4, mysql_mbcharlen_utf8,  check_mb_utf8_valid},
   {  63, 1, "binary", "binary", "", 0, "ASCII", 1, 1, NULL, NULL},
   {  83, 1, UTF8_MB3, UTF8_MB3"_bin", "", 65001, "UTF-8", 1, 3, mysql_mbcharlen_utf8mb3,  check_mb_utf8mb3_valid},
   { 192, 1, UTF8_MB3, UTF8_MB3"_unicode_ci", "", 65001, "UTF-8", 1, 3, mysql_mbcharlen_utf8mb3, check_mb_utf8mb3_valid},

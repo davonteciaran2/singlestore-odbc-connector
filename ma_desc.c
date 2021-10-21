@@ -238,7 +238,7 @@ MADB_SetIrdRecord(MADB_Stmt *Stmt, MADB_DescRecord *Record, MYSQL_FIELD *Field)
     Record->NumPrecRadix= 0;
     break;
   }
-  Record->ConciseType= MapMariadDbToOdbcType(Field, Stmt->Connection->IsAnsi);
+  Record->ConciseType= MapMariadDbToOdbcType(Field);
   /* 
       TYPE:
       For the datetime and interval data types, this field returns the verbose data type: SQL_DATETIME or SQL_INTERVAL.
@@ -340,7 +340,7 @@ void MADB_FixOctetLength(MADB_DescRecord *Record)
     Record->OctetLength= 2;
     break;
   case SQL_INTEGER:
-  case SQL_FLOAT:
+  case SQL_REAL:
     Record->OctetLength= 4;
     break;
   case SQL_BIGINT:
@@ -455,7 +455,7 @@ MADB_FixIrdRecord(MADB_Stmt *Stmt, MADB_DescRecord *Record)
     Record->Precision= (SQLSMALLINT)Record->OctetLength - 2;
     /*Record->Scale= Fields[i].decimals;*/
     break;
-  case SQL_FLOAT:
+  case SQL_REAL:
     /* Float*/
     Record->NumPrecRadix= 2;
     Record->Precision= (SQLSMALLINT)Record->OctetLength - 2;

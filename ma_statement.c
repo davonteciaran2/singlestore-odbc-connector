@@ -4770,7 +4770,11 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       current_row_ptr = formatted_table_ptr[n_rows] = (char**)calloc(SQL_COLUMNS_FIELD_COUNT, sizeof(char*));
       // printf("field %-19s has mysql type %-3d and length %-10lu decimals %-3d flags %-8d charsetnr %-2d max_length %lu\n",field->name, field->type, field->length, field->decimals, field->flags, field->charsetnr, field->max_length);
 
-      concise_data_type = MapMariadDbToOdbcType(field, Stmt->Connection->IsAnsi);
+      concise_data_type = MapMariadDbToOdbcType(field);
+      if (field->charsetnr != BINARY_CHARSETNR && !Stmt->Connection->IsAnsi)
+      {
+        concise_data_type = MADB_GetWCharType(concise_data_type);
+      }
       if (Stmt->Connection->Environment->OdbcVersion == SQL_OV_ODBC2)
       {
         odbc_data_type = MapToV2Type(concise_data_type);

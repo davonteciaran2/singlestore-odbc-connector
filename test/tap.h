@@ -132,9 +132,12 @@ static SQLCHAR *my_dsn=             (SQLCHAR *)"ssodbc_test_w";
 static SQLCHAR *my_uid=             (SQLCHAR *)"root";
 static SQLCHAR *my_pwd=             (SQLCHAR *)"";
 static SQLCHAR *my_schema=          (SQLCHAR *)"odbc_test";
-static SQLCHAR *my_drivername=      (SQLCHAR *)"SingleStore ODBC 1.0.4 ANSI Driver";
+static SQLCHAR *my_drivername=      (SQLCHAR *)"SingleStore ODBC 1.0.4 Unicode Driver";
 static SQLCHAR *my_servername=      (SQLCHAR *)"127.0.0.1";
 static SQLCHAR *add_connstr=        (SQLCHAR*)"";
+
+static unsigned int  my_port=        5506;
+char          ma_strport[12]= "PORT=5506";
 
 static SQLWCHAR *wdsn;
 static SQLWCHAR *wuid;
@@ -150,9 +153,6 @@ static unsigned long my_options= 67108866;
 static SQLHANDLE     Env, Connection, Stmt, wConnection, wStmt;
 static SQLINTEGER    OdbcVer=        SQL_OV_ODBC3;
 static my_bool       NoSsps = 1;
-
-static unsigned int  my_port=        5506;
-char          ma_strport[12]= "PORT=5506";
 
 static int Travis= 0, TravisOnOsx= 0;
 

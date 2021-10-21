@@ -638,18 +638,15 @@ int MADB_GetDefaultType(int SQLDataType)
 
 /* {{{ MapMariadDbToOdbcType */
        /* It's not quite right to mix here C and SQL types, even though constants are sort of equal */
-SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field, my_bool is_ansi)
+SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field)
 {
-  SQLSMALLINT sql_char = is_ansi ? SQL_CHAR : SQL_WCHAR;
-  SQLSMALLINT sql_varchar = is_ansi ? SQL_VARCHAR : SQL_WVARCHAR;
-  SQLSMALLINT sql_longvarchar = is_ansi ? SQL_LONGVARCHAR : SQL_WLONGVARCHAR;
   switch (field->type) {
     case MYSQL_TYPE_BIT:
       return SQL_BINARY;
     case MYSQL_TYPE_NULL:
-      return sql_varchar;
+      return SQL_VARCHAR;
     case MYSQL_TYPE_TINY:
-      return field->flags & NUM_FLAG ? SQL_TINYINT : sql_char;
+      return field->flags & NUM_FLAG ? SQL_TINYINT : SQL_CHAR;
     case MYSQL_TYPE_YEAR:
     case MYSQL_TYPE_SHORT:
       return SQL_SMALLINT;
@@ -672,20 +669,20 @@ SQLSMALLINT MapMariadDbToOdbcType(MYSQL_FIELD *field, my_bool is_ansi)
     case MYSQL_TYPE_BLOB:
     case MYSQL_TYPE_MEDIUM_BLOB:
     case MYSQL_TYPE_LONG_BLOB:
-      return MADB_FIELD_IS_BINARY(field) ? SQL_LONGVARBINARY : sql_longvarchar;
+      return MADB_FIELD_IS_BINARY(field) ? SQL_LONGVARBINARY : SQL_LONGVARCHAR;
     case MYSQL_TYPE_LONGLONG:
       return SQL_BIGINT;
     case MYSQL_TYPE_STRING:
-      return MADB_FIELD_IS_BINARY(field) ? SQL_BINARY : sql_char;
+      return MADB_FIELD_IS_BINARY(field) ? SQL_BINARY : SQL_CHAR;
     case MYSQL_TYPE_VAR_STRING:
-      return MADB_FIELD_IS_BINARY(field) ? SQL_VARBINARY : sql_varchar;
+      return MADB_FIELD_IS_BINARY(field) ? SQL_VARBINARY : SQL_VARCHAR;
     case MYSQL_TYPE_SET:
     case MYSQL_TYPE_ENUM:
-      return sql_char;
+      return SQL_CHAR;
     case MYSQL_TYPE_GEOMETRY:
       return SQL_LONGVARBINARY;
     case MYSQL_TYPE_JSON:
-      return sql_longvarchar;
+      return SQL_LONGVARCHAR;
     case MYSQL_TYPE_DECIMAL:
     case MYSQL_TYPE_NEWDECIMAL:
       return SQL_DECIMAL;

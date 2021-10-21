@@ -950,11 +950,6 @@ ODBC_TEST(sql_native_sql) {
     SQLINTEGER len;
 
     CHECK_STMT_RC(Stmt, SQLNativeSql(Connection, (SQLCHAR*)queries[i], SQL_NTS, buffer, BUFFER_SIZE, &len));
-    if (len != strlen(expected_results[i]))
-    {
-      fprintf(stderr, "boom: got %s, need %s", buffer, expected_results[i]);
-      int l;
-    }
     is_num(len, strlen(expected_results[i]));
     IS_STR(buffer, expected_results[i], len);
 

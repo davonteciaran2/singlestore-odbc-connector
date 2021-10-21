@@ -589,7 +589,7 @@ ODBC_TEST(float_scale)
 
 
 /**
-  Test the BIT type, which has is
+  Test the BIT type, which in SingleStore always has 64 bits, i.e. 8 bytes
 */
 ODBC_TEST(bit)
 {
