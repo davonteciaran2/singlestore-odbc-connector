@@ -1623,6 +1623,35 @@ int GetDefaultCharType(int WType, BOOL isAnsiConnection)
     return WType;
 }
 
+int get_db_char_size()
+{
+  MYSQL* mysql = mysql_init(NULL);
+  MYSQL_RES *res;
+  MYSQL_ROW row;
+  char *collation;
+  const char *query = "SELECT @@collation_database";
+
+  if (!mysql_real_connect(mysql, (const char *)my_servername, (const char *)my_uid, (const char *)my_pwd, NULL, my_port, NULL, 0))
+    return 0;
+
+  if (mysql_query(mysql, query))
+    return 0;
+  res = mysql_store_result(mysql);
+  if ((row = mysql_fetch_row(res)))
+    collation = (char*)row[0];
+  else
+  {
+    mysql_free_result(res);
+    return 0;
+  }
+  mysql_free_result(res);
+  if (!strncmp(collation, "utf8mb4", 7))
+    return 4;
+  if (!strncmp(collation, "utf8", 4))
+    return 3;
+  return 1;
+}
+
 /* Looks like same version of iOdbc behaves differently on os x and linux, thus for some tests we need to be able to tell there is iOdbc run */
 BOOL iOdbcOnOsX()
 {

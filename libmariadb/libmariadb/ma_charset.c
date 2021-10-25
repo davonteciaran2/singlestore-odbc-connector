@@ -615,6 +615,20 @@ MARIADB_CHARSET_INFO * mysql_find_charset_name(const char *name)
 }
 /* }}} */
 
+/* {{{ mysql_find_charset_by_collation */
+const MARIADB_CHARSET_INFO *mysql_find_charset_by_collation(const char *name)
+{
+  MARIADB_CHARSET_INFO *c = (MARIADB_CHARSET_INFO *)mariadb_compiled_charsets;
+
+  do
+  {
+    if (!strcasecmp(c->name, name))
+      return c;
+    ++c;
+  } while (c[0].nr != 0);
+  return NULL;
+}
+/* }}} */
 
 /* {{{ mysql_cset_escape_quotes */
 size_t mysql_cset_escape_quotes(const MARIADB_CHARSET_INFO *cset, char *newstr,

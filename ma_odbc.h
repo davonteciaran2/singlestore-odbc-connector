@@ -371,6 +371,7 @@ struct st_ma_odbc_connection
                                   We have to use same charset to recode from unicode to get same string as application sent it.
                                   For Unicode application that is the same as "Charset", or in case of ANSI on Windows - defaulst system codepage */
   char *DataBase;
+  SQLUINTEGER DBCharsetnr;
   MADB_List ListItem;
   MADB_List *Stmts;
   MADB_List *Descrs;

@@ -22,6 +22,8 @@
 
 #define MADB_FIELD_IS_BINARY(_field) ((_field)->charsetnr == BINARY_CHARSETNR)
 
+extern const MARIADB_CHARSET_INFO *mysql_find_charset_by_collation(const char *name);
+
 void CloseMultiStatements(MADB_Stmt *Stmt)
 {
   unsigned int i;
@@ -212,6 +214,38 @@ end:
     Stmt->Methods->StmtFree(Stmt, SQL_DROP);
   }
   return Count;
+}
+
+int SetDBCharsetnr(MADB_Dbc *Connection)
+{
+  MYSQL_RES *res;
+  MYSQL_ROW row;
+  char *collation;
+  const char *query = "SELECT @@collation_database";
+
+  LOCK_MARIADB(Connection);
+  if (mysql_query(Connection->mariadb, query))
+  {
+    UNLOCK_MARIADB(Connection);
+    return MADB_SetNativeError(&Connection->Error, SQL_HANDLE_DBC, Connection->mariadb);
+  }
+  res = mysql_store_result(Connection->mariadb);
+  UNLOCK_MARIADB(Connection);
+  if ((row = mysql_fetch_row(res)))
+  {
+    collation = (char*)row[0];
+  }
+  else
+  {
+    mysql_free_result(res);
+    return 1;
+  }
+  mysql_free_result(res);
+  const MARIADB_CHARSET_INFO *cs_info = mysql_find_charset_by_collation(collation);
+  if (!cs_info)
+    return 1;
+  Connection->DBCharsetnr = cs_info->nr;
+  return 0;
 }
 
 
@@ -1411,18 +1445,18 @@ Get the result of SHOW COLUMNS FROM table LIKE column_like
 @param[in] catalog_length Length of catalog name
 @param[in] table          Name of table
 @param[in] table_length   Length of table name
-@param[in] column_like    Column name pattern to match 
+@param[in] column_like    Column name pattern to match
 
 @return Result of SHOW TABLE STATUS, or NULL if there is an error
 or empty result (check mysql_errno(stmt->Connection->mariadb) != 0)
 */
-MYSQL_RES *MADB_ShowColumnsInTable(MADB_Stmt  *stmt,
-                                   SQLCHAR     *catalog,
-                                   SQLSMALLINT  catalog_length,
-                                   SQLCHAR     *table,
-                                   SQLSMALLINT  table_length,
-                                   SQLCHAR     *column_like,
-                                   SQLSMALLINT  column_length)
+MYSQL_RES *S2_ShowColumnsInTable(MADB_Stmt  *stmt,
+                                 SQLCHAR     *catalog,
+                                 SQLSMALLINT  catalog_length,
+                                 SQLCHAR     *table,
+                                 SQLSMALLINT  table_length,
+                                 SQLCHAR     *column_like,
+                                 SQLSMALLINT  column_length)
 {
 	char tmpbuff[1024];
   char query[1024] = "SHOW COLUMNS FROM ";

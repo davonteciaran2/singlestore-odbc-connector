@@ -27,23 +27,19 @@
 
   @param[in]  field
 
-  @return  The column size of the field
+  @return The column size of the field. Cap at INT_MAX32 due to signed value in the ODBC spec
 */
-SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, const char *full_type_name, BOOL force_utf8mb4)
+SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, const char *full_type_name, BOOL force_db_charset, SQLUINTEGER db_charset)
 {
-  // cap at INT_MAX32 due to signed value in the ODBC spec
   SQLSMALLINT char_size = 1;
-  if (field->charsetnr != BINARY_CHARSETNR)
+  MARIADB_CHARSET_INFO *charset;
+  if (field->charsetnr != BINARY_CHARSETNR )
   {
-    if (force_utf8mb4)
-    {
-      char_size = 4;
-    }
+    if (force_db_charset)
+      charset = mariadb_get_charset_by_nr(db_charset);
     else
-    {
-      MARIADB_CHARSET_INFO *charset = mariadb_get_charset_by_nr(field->charsetnr);
-      char_size = charset ? charset->char_maxlen : 1;
-    }
+      charset = mariadb_get_charset_by_nr(field->charsetnr);
+    char_size = charset ? charset->char_maxlen : 1;
   }
 
   // types "datetime" and "datetime(6)" are not distinguishable by the

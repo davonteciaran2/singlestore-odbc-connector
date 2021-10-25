@@ -4693,8 +4693,9 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
   if (ColumnName && NameLength4 <= 0)
     NameLength4 = strlen(ColumnName);
 
-  // TODO: set force_utf8mb4 for engine versions where the correct utf8mb4 charsetnr is reported
-  int force_utf8mb4 = single_store_get_server_version(Stmt->Connection->mariadb) >= 70500;
+  // TODO: set force_db_charset to 0 for engine versions where the correct utf8mb4 charsetnr is reported
+  int force_db_charset = single_store_get_server_version(Stmt->Connection->mariadb) >= 70500;
+  SQLUINTEGER db_charset = Stmt->Connection->DBCharsetnr;
 
   // get the list of matching tables
   tables_res = MADB_ShowTables(Stmt, CatalogName, NameLength1, TableName, NameLength3, TRUE);
@@ -4721,8 +4722,8 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       free(formatted_table_ptr);
       return Stmt->Error.ReturnValue;
     }
-    if (!(show_columns_res = MADB_ShowColumnsInTable(
-      Stmt, CatalogName, NameLength1, table_row[0], table_lengths[0], ColumnName, NameLength4)))
+    if (!(show_columns_res = S2_ShowColumnsInTable(
+        Stmt, CatalogName, NameLength1, table_row[0], table_lengths[0], ColumnName, NameLength4)))
     {
       free(formatted_table_ptr);
       mysql_free_result(columns_res);
@@ -4747,7 +4748,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
         formatted_table_ptr = temp_ptr;
       }
       current_row_ptr = formatted_table_ptr[n_rows] = (char**)calloc(SQL_COLUMNS_FIELD_COUNT, sizeof(char*));
-      printf("field %-19s has mysql type %-3d and length %-10lu decimals %-3d flags %-8d charsetnr %-2d max_length %lu\n",field->name, field->type, field->length, field->decimals, field->flags, field->charsetnr, field->max_length);
+      // printf("field %-19s has mysql type %-3d and length %-10lu decimals %-3d flags %-8d charsetnr %-2d max_length %lu\n",field->name, field->type, field->length, field->decimals, field->flags, field->charsetnr, field->max_length);
 
       concise_data_type = MapMariadDbToOdbcType(field);
       if (field->charsetnr != BINARY_CHARSETNR && !Stmt->Connection->IsAnsi)
@@ -4798,7 +4799,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       // TYPE_NAME
       is_alloc_fail |= !(uintptr_t)(current_row_ptr[5] = strdup(S2FieldDescr->FieldTypeS2));
       // COLUMN_SIZE
-      if ((column_char_length = S2_GetColumnSize(field, odbc_type_info, S2FieldDescr->FieldTypeS2, force_utf8mb4)) != SQL_NO_TOTAL)
+      if ((column_char_length = S2_GetColumnSize(field, odbc_type_info, S2FieldDescr->FieldTypeS2, force_db_charset, db_charset)) != SQL_NO_TOTAL)
         is_alloc_fail |= allocAndFormatInt(&current_row_ptr[6], column_char_length);
       // BUFFER_LENGTH
       if ((column_length = S2_GetCharacterOctetLength(field, odbc_type_info)) != SQL_NO_TOTAL)
