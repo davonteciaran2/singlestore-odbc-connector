@@ -1623,7 +1623,7 @@ int GetDefaultCharType(int WType, BOOL isAnsiConnection)
     return WType;
 }
 
-int get_db_char_size()
+int getDbCharSize()
 {
   MYSQL* mysql = mysql_init(NULL);
   MYSQL_RES *res;

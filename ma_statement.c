@@ -4679,7 +4679,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
   MYSQL_RES *tables_res, *columns_res, *show_columns_res;
   MYSQL_ROW table_row, columns_row;
   unsigned long *table_lengths, *columns_lengths;
-  SQLSMALLINT concise_data_type, odbc_data_type;
+  SQLSMALLINT concise_data_type, odbc_data_type, digits;
 
   FieldDescrList *tableFields;
   FieldDescr *S2FieldDescr;
@@ -4698,25 +4698,25 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
   SQLUINTEGER db_charset = Stmt->Connection->DBCharsetnr;
 
   // get the list of matching tables
-  tables_res = MADB_ShowTables(Stmt, CatalogName, NameLength1, TableName, NameLength3, TRUE);
+  tables_res = S2_ShowTables(Stmt, CatalogName, NameLength1, TableName, NameLength3, TRUE);
   if (!tables_res)
     return Stmt->Error.ReturnValue;
 
   int n_rows = 0, allocated_rows = 256;
-  char ***formatted_table_ptr = (char***)calloc(allocated_rows, sizeof(char**)), ***temp_ptr;
+  char ***formatted_table_ptr = (char***)calloc(allocated_rows, sizeof(char**)), ***temp_ptr = NULL;
   char **current_row_ptr;
   MYSQL_FIELD *field;
   SQLLEN column_char_length, column_length;
 
   short is_alloc_fail = 0;
-  const short need_free[SQL_COLUMNS_FIELD_COUNT] = {1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0};
+  const short need_free[SQL_COLUMNS_FIELD_COUNT] = {1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0};
 
   while ((table_row = mysql_fetch_row(tables_res)))
   {
     table_lengths = mysql_fetch_lengths(tables_res);
 
     // for each table get the list of matching columns in the table
-    if (!(columns_res = MADB_ListFields(
+    if (!(columns_res = S2_ListFields(
       Stmt, CatalogName, NameLength1, table_row[0], table_lengths[0], ColumnName, NameLength4)))
     {
       free(formatted_table_ptr);
@@ -4740,6 +4740,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
         temp_ptr = realloc(formatted_table_ptr, allocated_rows = 2 * allocated_rows);
         if (!temp_ptr)
         {
+          FreeFieldDescrList(tableFields);
           mysql_free_result(columns_res);
           mysql_free_result(show_columns_res);
           freeData(formatted_table_ptr, n_rows, SQL_COLUMNS_FIELD_COUNT, need_free);
@@ -4768,6 +4769,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       const MADB_TypeInfo* odbc_type_info = GetTypeInfo(concise_data_type, field);
       if (!odbc_type_info)
       {
+        FreeFieldDescrList(tableFields);
         mysql_free_result(columns_res);
         mysql_free_result(show_columns_res);
         freeData(formatted_table_ptr, n_rows, SQL_COLUMNS_FIELD_COUNT, need_free);
@@ -4805,8 +4807,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       if ((column_length = S2_GetCharacterOctetLength(field, odbc_type_info)) != SQL_NO_TOTAL)
         is_alloc_fail |= allocAndFormatInt(&current_row_ptr[7], column_length);
       // DECIMAL_DIGITS
-      SQLSMALLINT digits = S2_GetDecimalDigits(field);
-      if (digits != SQL_NO_TOTAL)
+      if ((digits = S2_GetDecimalDigits(field)) != SQL_NO_TOTAL)
         is_alloc_fail |= allocAndFormatInt(&current_row_ptr[8], digits);
       // NUM_PREC_RADIX
       if (odbc_type_info->NumPrecRadix)
@@ -4837,6 +4838,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       is_alloc_fail |= allocAndFormatInt(&current_row_ptr[16], ++ordinal_number);
       if (is_alloc_fail)
       {
+        FreeFieldDescrList(tableFields);
         mysql_free_result(columns_res);
         mysql_free_result(show_columns_res);
         freeData(formatted_table_ptr, n_rows, SQL_COLUMNS_FIELD_COUNT, need_free);
@@ -4848,7 +4850,6 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
     mysql_free_result(show_columns_res);
   }
   mysql_free_result(tables_res);
-  // printData(formatted_table_ptr, n_rows, SQL_COLUMNS_FIELD_COUNT);
   // link statement result to the processed columns
   if (!SQL_SUCCEEDED(MADB_FakeRequest(
     Stmt, SqlColumnsFieldNames, SqlColumnsFieldTypes, SQL_COLUMNS_FIELD_COUNT, formatted_table_ptr, n_rows)))

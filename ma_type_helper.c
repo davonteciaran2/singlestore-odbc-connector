@@ -29,7 +29,7 @@
 
   @return The column size of the field. Cap at INT_MAX32 due to signed value in the ODBC spec
 */
-SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, const char *full_type_name, BOOL force_db_charset, SQLUINTEGER db_charset)
+SQLINTEGER S2_GetColumnSize(const MYSQL_FIELD *field, const MADB_TypeInfo *odbc_type_info, const char *full_type_name, BOOL force_db_charset, SQLUINTEGER db_charset)
 {
   SQLSMALLINT char_size = 1;
   MARIADB_CHARSET_INFO *charset;
@@ -97,7 +97,7 @@ SQLINTEGER S2_GetColumnSize(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info, c
 
   @return  The transfer octet length
 */
-SQLLEN S2_GetCharacterOctetLength(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_info)
+SQLLEN S2_GetCharacterOctetLength(const MYSQL_FIELD *field, const MADB_TypeInfo *odbc_type_info)
 {
   SQLLEN length = MIN(INT32_MAX, field->length);
   /* cap at INT_MAX32 due to signed value */
@@ -160,7 +160,7 @@ SQLLEN S2_GetCharacterOctetLength(MYSQL_FIELD *field, MADB_TypeInfo *odbc_type_i
   The function has to return SQLSMALLINT, since it corresponds to SQL_DESC_SCALE
   or SQL_DESC_PRECISION for some data types.
 */
-SQLSMALLINT S2_GetDecimalDigits(MYSQL_FIELD *field)
+SQLSMALLINT S2_GetDecimalDigits(const MYSQL_FIELD *field)
 {
   switch (field->type)
   {

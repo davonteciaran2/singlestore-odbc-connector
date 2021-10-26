@@ -78,7 +78,7 @@ int SetDBCharsetnr(MADB_Dbc *Connection);
 /* for dummy binding */
 extern my_bool DummyError;
 
-MYSQL_RES *MADB_ShowTables(MADB_Stmt   *stmt,
+MYSQL_RES *S2_ShowTables(MADB_Stmt   *stmt,
                            SQLCHAR     *catalog,
                            SQLSMALLINT  catalog_length,
                            SQLCHAR     *table,
@@ -86,7 +86,7 @@ MYSQL_RES *MADB_ShowTables(MADB_Stmt   *stmt,
                            BOOL         wildcard);
 
 MYSQL_RES *
-MADB_ListFields(MADB_Stmt   *stmt,
+S2_ListFields(MADB_Stmt   *stmt,
                 SQLCHAR     *catalog,
                 SQLSMALLINT  catalog_length,
                 SQLCHAR     *table,

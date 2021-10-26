@@ -240,8 +240,8 @@ int SetDBCharsetnr(MADB_Dbc *Connection)
     mysql_free_result(res);
     return 1;
   }
-  mysql_free_result(res);
   const MARIADB_CHARSET_INFO *cs_info = mysql_find_charset_by_collation(collation);
+  mysql_free_result(res);
   if (!cs_info)
     return 1;
   Connection->DBCharsetnr = cs_info->nr;
@@ -1390,7 +1390,7 @@ Lengths may not be SQL_NTS.
 @return Result of SHOW TABLES, or NULL if there is an error
 or empty result (check mysql_errno(stmt->Connection->mariadb) != 0)
 */
-MYSQL_RES *MADB_ShowTables(MADB_Stmt   *stmt,
+MYSQL_RES *S2_ShowTables(MADB_Stmt   *stmt,
                           SQLCHAR     *catalog,
                           SQLSMALLINT  catalog_length,
                           SQLCHAR     *table,
@@ -1562,7 +1562,7 @@ void FreeFieldDescrList(FieldDescrList *allFields)
 }
 
 MYSQL_RES *
-MADB_ListFields(MADB_Stmt   *stmt,
+S2_ListFields(MADB_Stmt   *stmt,
                 SQLCHAR     *catalog,
                 SQLSMALLINT  catalog_length,
                 SQLCHAR     *table,
