@@ -39,7 +39,7 @@ SQLINTEGER S2_GetColumnSize(const MYSQL_FIELD *field, const MADB_TypeInfo *odbc_
       charset = mariadb_get_charset_by_nr(db_charset);
     else
       charset = mariadb_get_charset_by_nr(field->charsetnr);
-    char_size = charset ? charset->char_maxlen : 1;
+    char_size = charset ? charset->char_maxlen : 4;
   }
 
   // types "datetime" and "datetime(6)" are not distinguishable by the
@@ -68,8 +68,8 @@ SQLINTEGER S2_GetColumnSize(const MYSQL_FIELD *field, const MADB_TypeInfo *odbc_
   case MYSQL_TYPE_DECIMAL:
   case MYSQL_TYPE_NEWDECIMAL:
     return (field->length -
-            (!(field->flags & UNSIGNED_FLAG) ? 1 : 0) - /* sign? */
-            (field->decimals ? 1 : 0));             /* decimal point? */
+            (!(field->flags & UNSIGNED_FLAG) ? 1 : 0) - /* sign */
+            (field->decimals ? 1 : 0));             /* decimal point */
 
   case MYSQL_TYPE_GEOMETRY:
   case MYSQL_TYPE_ENUM:
@@ -94,13 +94,12 @@ SQLINTEGER S2_GetColumnSize(const MYSQL_FIELD *field, const MADB_TypeInfo *odbc_
     http://msdn2.microsoft.com/en-us/library/ms713979.aspx
 
   @param[in]  field
+  @param[in] odbc_type_info
 
-  @return  The transfer octet length
+  @return  The transfer octet length. Cap at INT_MAX32 due to signed value
 */
 SQLLEN S2_GetCharacterOctetLength(const MYSQL_FIELD *field, const MADB_TypeInfo *odbc_type_info)
 {
-  SQLLEN length = MIN(INT32_MAX, field->length);
-  /* cap at INT_MAX32 due to signed value */
 
   switch (field->type)
   {
@@ -138,7 +137,7 @@ SQLLEN S2_GetCharacterOctetLength(const MYSQL_FIELD *field, const MADB_TypeInfo 
   case MYSQL_TYPE_GEOMETRY:
   case MYSQL_TYPE_DECIMAL:
   case MYSQL_TYPE_NEWDECIMAL:
-    return length;
+    return MIN(INT32_MAX, field->length);
   case MYSQL_TYPE_TINY_BLOB:
   case MYSQL_TYPE_MEDIUM_BLOB:
   case MYSQL_TYPE_LONG_BLOB:

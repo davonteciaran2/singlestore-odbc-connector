@@ -22,6 +22,10 @@
 
 #define MADB_FIELD_IS_BINARY(_field) ((_field)->charsetnr == BINARY_CHARSETNR)
 
+#define SHOW_COLUMNS_NAME_IDX 0
+#define SHOW_COLUMNS_TYPE_IDX 1
+#define SHOW_COLUMNS_DEFAULT_VALUE_IDX 4
+
 extern const MARIADB_CHARSET_INFO *mysql_find_charset_by_collation(const char *name);
 
 void CloseMultiStatements(MADB_Stmt *Stmt)
@@ -227,6 +231,7 @@ int SetDBCharsetnr(MADB_Dbc *Connection)
   if (mysql_query(Connection->mariadb, query))
   {
     UNLOCK_MARIADB(Connection);
+    Connection->DBCharsetnr = 0;
     return MADB_SetNativeError(&Connection->Error, SQL_HANDLE_DBC, Connection->mariadb);
   }
   res = mysql_store_result(Connection->mariadb);
@@ -238,12 +243,16 @@ int SetDBCharsetnr(MADB_Dbc *Connection)
   else
   {
     mysql_free_result(res);
+    Connection->DBCharsetnr = 0;
     return 1;
   }
   const MARIADB_CHARSET_INFO *cs_info = mysql_find_charset_by_collation(collation);
   mysql_free_result(res);
   if (!cs_info)
+  {
+    Connection->DBCharsetnr = 0;
     return 1;
+  }
   Connection->DBCharsetnr = cs_info->nr;
   return 0;
 }
@@ -1505,13 +1514,13 @@ FieldDescrList *ProcessShowColumns(MYSQL_RES *res)
 
   int rowNum = 0;
 
-  while (columnsRow = mysql_fetch_row(res))
+  while ((columnsRow = mysql_fetch_row(res)))
   {
-    (fieldsResult->list)[rowNum].FieldName = strdup(columnsRow[0]);
-    (fieldsResult->list)[rowNum].FieldTypeS2 = strdup(columnsRow[1]);
-    if (columnsRow[4] && *columnsRow[4])
+    (fieldsResult->list)[rowNum].FieldName = strdup(columnsRow[SHOW_COLUMNS_NAME_IDX]);
+    (fieldsResult->list)[rowNum].FieldTypeS2 = strdup(columnsRow[SHOW_COLUMNS_TYPE_IDX]);
+    if (columnsRow[SHOW_COLUMNS_DEFAULT_VALUE_IDX] && *columnsRow[SHOW_COLUMNS_DEFAULT_VALUE_IDX])
     {
-      (fieldsResult->list)[rowNum].DefaultValue = strdup(columnsRow[4]);
+      (fieldsResult->list)[rowNum].DefaultValue = strdup(columnsRow[SHOW_COLUMNS_DEFAULT_VALUE_IDX]);
     }
     else
     {

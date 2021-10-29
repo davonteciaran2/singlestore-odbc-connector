@@ -4645,6 +4645,71 @@ SQLRETURN MADB_StmtStatistics(MADB_Stmt *Stmt, char *CatalogName, SQLSMALLINT Na
 }
 /* }}} */
 
+#define SQL_COLUMNS_FIELD_COUNT 18
+
+static const char * SqlColumnsFieldNames[SQL_COLUMNS_FIELD_COUNT] = {
+    "TABLE_CAT",
+    "TABLE_SCHEM",
+    "TABLE_NAME",
+    "COLUMN_NAME",
+    "DATA_TYPE",
+    "TYPE_NAME",
+    "COLUMN_SIZE",
+    "BUFFER_LENGTH",
+    "DECIMAL_DIGITS",
+    "NUM_PREC_RADIX",
+    "NULLABLE",
+    "REMARKS",
+    "COLUMN_DEF",
+    "SQL_DATA_TYPE",
+    "SQL_DATETIME_SUB",
+    "CHAR_OCTET_LENGTH",
+    "ORDINAL_POSITION",
+    "IS_NULLABLE"
+};
+
+static const enum enum_field_types SqlColumnsFieldTypes[SQL_COLUMNS_FIELD_COUNT] = {
+    SQL_VARCHAR,
+    SQL_VARCHAR,
+    SQL_VARCHAR,
+    SQL_VARCHAR,
+    SQL_SMALLINT,
+    SQL_VARCHAR,
+    SQL_INTEGER,
+    SQL_INTEGER,
+    SQL_SMALLINT,
+    SQL_SMALLINT,
+    SQL_SMALLINT,
+    SQL_VARCHAR,
+    SQL_VARCHAR,
+    SQL_SMALLINT,
+    SQL_SMALLINT,
+    SQL_INTEGER,
+    SQL_INTEGER,
+    SQL_VARCHAR
+};
+
+static const MADB_ShortTypeInfo SqlColumnsColType[SQL_COLUMNS_FIELD_COUNT] = {
+    {SQL_VARCHAR,  0, SQL_NULLABLE, 0},  // TABLE_CAT
+    {SQL_VARCHAR,  0, SQL_NULLABLE, 0},  // TABLE_SCHEM
+    {SQL_VARCHAR,  0, SQL_NO_NULLS, 0},  // TABLE_NAME
+    {SQL_VARCHAR,  0, SQL_NO_NULLS, 0},  // COLUMN_NAME
+    {SQL_SMALLINT, 0, SQL_NO_NULLS, 0},  // DATA_TYPE
+    {SQL_VARCHAR,  0, SQL_NO_NULLS, 0},  // TYPE_NAME
+    {SQL_INTEGER,  0, SQL_NULLABLE, 0},  // COLUMN_SIZE
+    {SQL_INTEGER,  0, SQL_NULLABLE, 0},  // BUFFER_LENGTH
+    {SQL_SMALLINT, 0, SQL_NULLABLE, 0},  // DECIMAL_DIGITS
+    {SQL_SMALLINT, 0, SQL_NULLABLE, 0},  // NUM_PREC_RADIX
+    {SQL_SMALLINT, 0, SQL_NO_NULLS, 0},  // NULLABLE
+    {SQL_VARCHAR,  0, SQL_NULLABLE, 0},  // REMARKS
+    {SQL_VARCHAR,  0, SQL_NULLABLE, 0},  // COLUMN_DEF
+    {SQL_SMALLINT, 0, SQL_NO_NULLS, 0},  // SQL_DATA_TYPE
+    {SQL_SMALLINT, 0, SQL_NULLABLE, 0},  // SQL_DATETIME_SUB
+    {SQL_INTEGER,  0, SQL_NULLABLE, 0},  // CHAR_OCTET_LENGTH
+    {SQL_INTEGER,  0, SQL_NO_NULLS, 0},  // ORDINAL_POSITION
+    {SQL_VARCHAR,  0, SQL_NULLABLE, 0}   // IS_NULLABLE
+};
+
 short allocAndFormatInt(char **buf, int value)
 {
     // maximum 11 chars for a 32-bit signed integer
@@ -4695,7 +4760,6 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
 
   // TODO: set force_db_charset to 0 for engine versions where the correct utf8mb4 charsetnr is reported
   int force_db_charset = single_store_get_server_version(Stmt->Connection->mariadb) >= 70500;
-  SQLUINTEGER db_charset = Stmt->Connection->DBCharsetnr;
 
   // get the list of matching tables
   tables_res = S2_ShowTables(Stmt, CatalogName, NameLength1, TableName, NameLength3, TRUE);
@@ -4709,6 +4773,8 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
   SQLLEN column_char_length, column_length;
 
   short is_alloc_fail = 0;
+  // we don't allocate memory at pos 11: TABLE_SCHEM is always NULL;
+  // at pos 17: literal "YES" or "NO" is written there
   const short need_free[SQL_COLUMNS_FIELD_COUNT] = {1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0};
 
   while ((table_row = mysql_fetch_row(tables_res)))
@@ -4749,7 +4815,6 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
         formatted_table_ptr = temp_ptr;
       }
       current_row_ptr = formatted_table_ptr[n_rows] = (char**)calloc(SQL_COLUMNS_FIELD_COUNT, sizeof(char*));
-      // printf("field %-19s has mysql type %-3d and length %-10lu decimals %-3d flags %-8d charsetnr %-2d max_length %lu\n",field->name, field->type, field->length, field->decimals, field->flags, field->charsetnr, field->max_length);
 
       concise_data_type = MapMariadDbToOdbcType(field);
       if (field->charsetnr != BINARY_CHARSETNR && !Stmt->Connection->IsAnsi)
@@ -4801,7 +4866,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       // TYPE_NAME
       is_alloc_fail |= !(uintptr_t)(current_row_ptr[5] = strdup(S2FieldDescr->FieldTypeS2));
       // COLUMN_SIZE
-      if ((column_char_length = S2_GetColumnSize(field, odbc_type_info, S2FieldDescr->FieldTypeS2, force_db_charset, db_charset)) != SQL_NO_TOTAL)
+      if ((column_char_length = S2_GetColumnSize(field, odbc_type_info, S2FieldDescr->FieldTypeS2, force_db_charset, Stmt->Connection->DBCharsetnr)) != SQL_NO_TOTAL)
         is_alloc_fail |= allocAndFormatInt(&current_row_ptr[6], column_char_length);
       // BUFFER_LENGTH
       if ((column_length = S2_GetCharacterOctetLength(field, odbc_type_info)) != SQL_NO_TOTAL)
@@ -4815,7 +4880,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       // NULLABLE
       is_alloc_fail |= allocAndFormatInt(&current_row_ptr[10], !(field->flags & NOT_NULL_FLAG));
       // IS_NULLABLE
-      current_row_ptr[17] = field->flags & NOT_NULL_FLAG ? "NO" : "YES";
+      current_row_ptr[17] = (field->flags & NOT_NULL_FLAG) ? "NO" : "YES";
       // REMARKS
       current_row_ptr[11] = NULL;
       // COLUMN_DEF
@@ -6021,7 +6086,7 @@ struct st_ma_stmt_methods MADB_StmtMethods=
   MADB_StmtTablePrivileges,
   MADB_StmtTables,
   MADB_StmtStatistics,
-  // MADB_StmtColumns,
+  // MADB_StmtColumns,  TODO: delete comment and function when MADB_StmtColumnsNoInfoSchema is tested
   MADB_StmtColumnsNoInfoSchema,
   MADB_StmtProcedureColumns,
   MADB_StmtPrimaryKeys,
