@@ -1570,6 +1570,41 @@ void FreeFieldDescrList(FieldDescrList *allFields)
   free(allFields);
 }
 
+MYSQL_RES *S2_ShowKeysInTable(MADB_Stmt  *stmt,
+                                 SQLCHAR     *catalog,
+                                 SQLSMALLINT  catalog_length,
+                                 SQLCHAR     *table,
+                                 SQLSMALLINT  table_length)
+{
+	char tmpbuff[1024];
+  char query[1024] = "SHOW KEYS FROM ";
+  size_t cnt = 0;
+
+	if (catalog && *catalog)
+	{
+    strcat(query, "`");
+    strncat(query, catalog, catalog_length);
+    strcat(query, "`");
+	  strcat(query, ".");
+	}
+
+  strcat(query, "`");
+  strncat(query, table, table_length);
+  strcat(query, "`");
+
+  LOCK_MARIADB(stmt->Connection);
+  if (mysql_real_query(stmt->Connection->mariadb, query, strlen(query)))
+  {
+    UNLOCK_MARIADB(stmt->Connection);
+    MADB_SetError(&stmt->Error, MADB_ERR_HY001, mysql_error(stmt->Connection->mariadb), mysql_errno(stmt->Connection->mariadb));
+    return NULL;
+  }
+  UNLOCK_MARIADB(stmt->Connection);
+
+  return mysql_store_result(stmt->Connection->mariadb);
+}
+
+
 MYSQL_RES *
 S2_ListFields(MADB_Stmt   *stmt,
                 SQLCHAR     *catalog,
