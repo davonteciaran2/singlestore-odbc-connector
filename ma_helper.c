@@ -1606,10 +1606,12 @@ MYSQL_RES *S2_ShowKeysInTable(MADB_Stmt  *stmt,
   LOCK_MARIADB(stmt->Connection);
   if (mysql_real_query(stmt->Connection->mariadb, query.str, query.length))
   {
+    MADB_DynstrFree(&query);
     UNLOCK_MARIADB(stmt->Connection);
     MADB_SetError(&stmt->Error, MADB_ERR_HY001, mysql_error(stmt->Connection->mariadb), mysql_errno(stmt->Connection->mariadb));
     return NULL;
   }
+  MADB_DynstrFree(&query);
   UNLOCK_MARIADB(stmt->Connection);
 
   return mysql_store_result(stmt->Connection->mariadb);
