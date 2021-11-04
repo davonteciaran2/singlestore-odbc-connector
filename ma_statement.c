@@ -4808,12 +4808,8 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
         temp_ptr = realloc(formatted_table_ptr, allocated_rows = 2 * allocated_rows);
         if (!temp_ptr)
         {
-          FreeFieldDescrList(tableFields);
-          mysql_free_result(tables_res);
-          mysql_free_result(columns_res);
-          mysql_free_result(show_columns_res);
-          freeData(formatted_table_ptr, n_rows, SQL_COLUMNS_FIELD_COUNT, need_free);
-          return MADB_SetError(&Stmt->Error, MADB_ERR_HY001, "Failed to allocate memory for columns data", 0);
+          MADB_SetError(&Stmt->Error, MADB_ERR_HY001, "Failed to allocate memory for columns data", 0);
+          goto end_with_error;
         }
         formatted_table_ptr = temp_ptr;
       }
@@ -4837,14 +4833,10 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       const MADB_TypeInfo* odbc_type_info = GetTypeInfo(concise_data_type, field);
       if (!odbc_type_info)
       {
-        FreeFieldDescrList(tableFields);
-        mysql_free_result(tables_res);
-        mysql_free_result(columns_res);
-        mysql_free_result(show_columns_res);
-        freeData(formatted_table_ptr, n_rows, SQL_COLUMNS_FIELD_COUNT, need_free);
         char err_msg[128];
         sprintf(err_msg, "Failed to get type data for SQL Type %d MYSQL type %d\n", concise_data_type, field->type);
-        return MADB_SetError(&Stmt->Error, MADB_ERR_HY001, err_msg, 0);
+        MADB_SetError(&Stmt->Error, MADB_ERR_HY001, err_msg, 0);
+        goto end_with_error;
       }
       S2FieldDescr = GetFieldDescr(field->name, tableFields);
       if (S2FieldDescr)
@@ -4907,12 +4899,8 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       is_alloc_fail |= allocAndFormatInt(&current_row_ptr[16], ++ordinal_number);
       if (is_alloc_fail)
       {
-        FreeFieldDescrList(tableFields);
-        mysql_free_result(tables_res);
-        mysql_free_result(columns_res);
-        mysql_free_result(show_columns_res);
-        freeData(formatted_table_ptr, n_rows, SQL_COLUMNS_FIELD_COUNT, need_free);
-        return MADB_SetError(&Stmt->Error, MADB_ERR_HY001, "Failed to allocate memory for columns data", 0);
+        MADB_SetError(&Stmt->Error, MADB_ERR_HY001, "Failed to allocate memory for columns data", 0);
+        goto end_with_error;
       }
     }
     FreeFieldDescrList(tableFields);
@@ -4930,6 +4918,14 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
   MADB_FixColumnDataTypes(Stmt, SqlColumnsColType);
   freeData(formatted_table_ptr, n_rows, SQL_COLUMNS_FIELD_COUNT, need_free);
   return SQL_SUCCESS;
+
+end_with_error:
+  FreeFieldDescrList(tableFields);
+  mysql_free_result(tables_res);
+  mysql_free_result(columns_res);
+  mysql_free_result(show_columns_res);
+  freeData(formatted_table_ptr, n_rows, SQL_COLUMNS_FIELD_COUNT, need_free);
+  return Stmt->Error.ReturnValue;
 }
 /* }}} */
 
@@ -6223,7 +6219,7 @@ struct st_ma_stmt_methods MADB_StmtMethods=
   MADB_StmtTablePrivileges,
   MADB_StmtTables,
   MADB_StmtStatistics,
-  // MADB_StmtColumns,  TODO: delete comment and function when MADB_StmtColumnsNoInfoSchema is tested
+  // MADB_StmtColumns, TODO: PLAT-5892: delete(?) comment and function when MADB_StmtColumnsNoInfoSchema is well tested
   MADB_StmtColumnsNoInfoSchema,
   MADB_StmtProcedureColumns,
   // MADB_StmtPrimaryKeys,
