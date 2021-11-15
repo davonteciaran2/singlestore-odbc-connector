@@ -4781,9 +4781,9 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
   {
     table_lengths = mysql_fetch_lengths(tables_res);
 
-    // for each table get the list of matching columns in the table
+    // for each table get the list of columns in the table
     if (!(columns_res = S2_ListFields(
-      Stmt, CatalogName, NameLength1, table_row[0], table_lengths[0], ColumnName, NameLength4)))
+      Stmt, CatalogName, NameLength1, table_row[0], table_lengths[0])))
     {
       free(formatted_table_ptr);
       mysql_free_result(tables_res);
@@ -4846,7 +4846,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
       else
       {
         // in this case field is filtered by column_like in `SHOW COLUMNS FROM ... LIKE <column_like>`
-        // so we should skip it indeed. mysql_list_fields doesn't apply filter for some reason
+        // so we should skip it indeed.
         continue;
       }
       // TABLE_CAT
