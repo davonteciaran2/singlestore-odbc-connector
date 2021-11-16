@@ -4758,7 +4758,7 @@ SQLRETURN MADB_StmtColumnsNoInfoSchema(MADB_Stmt *Stmt,
   if (ColumnName && NameLength4 <= 0)
     NameLength4 = strlen(ColumnName);
 
-  // TODO: set force_db_charset to 0 for engine versions where the correct utf8mb4 charsetnr is reported
+  // TODO: PLAT-5907 set force_db_charset to 0 for engine versions where the correct utf8mb4 charsetnr is reported
   int force_db_charset = single_store_get_server_version(Stmt->Connection->mariadb) >= 70500;
 
   // get the list of matching tables
