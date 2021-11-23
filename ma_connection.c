@@ -2056,7 +2056,7 @@ SQLRETURN MADB_DbcGetInfo(MADB_Dbc *Dbc, SQLUSMALLINT InfoType, SQLPOINTER InfoV
     break;
   case SQL_SQL92_VALUE_EXPRESSIONS:
     // SQL_SQL92_VALUE_EXPRESSIONS enumerates the value expressions supported, as defined in SQL-92.
-    MADB_SET_NUM_VAL(SQLUINTEGER, InfoValuePtr, SQL_SVE_CASE | SQL_SVE_CAST | SQL_SVE_COALESCE |
+    MADB_SET_NUM_VAL(SQLUINTEGER, InfoValuePtr, SQL_SVE_CASE | SQL_SVE_COALESCE |
                                                 SQL_SVE_NULLIF, StringLengthPtr);
     break;
   case SQL_STANDARD_CLI_CONFORMANCE:

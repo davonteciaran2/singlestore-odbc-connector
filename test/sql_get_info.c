@@ -708,7 +708,7 @@ ODBC_TEST(sql92)
                                                           SQL_SSF_SUBSTRING | SQL_SSF_TRIM_BOTH |
                                                           SQL_SSF_TRIM_LEADING | SQL_SSF_TRIM_TRAILING |
                                                           SQL_SSF_UPPER);
-  CHECK_U_INTEGER(Connection, SQL_SQL92_VALUE_EXPRESSIONS, SQL_SVE_CASE | SQL_SVE_CAST | SQL_SVE_COALESCE |
+  CHECK_U_INTEGER(Connection, SQL_SQL92_VALUE_EXPRESSIONS, SQL_SVE_CASE | SQL_SVE_COALESCE |
                                                            SQL_SVE_NULLIF);
   CHECK_U_INTEGER(Connection, SQL_DATETIME_LITERALS, SQL_DL_SQL92_DATE | SQL_DL_SQL92_TIME |
                                                      SQL_DL_SQL92_TIMESTAMP);
