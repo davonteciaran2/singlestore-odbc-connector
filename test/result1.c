@@ -2197,7 +2197,7 @@ int checkGetDataLength(int noCache) {
   SQLHANDLE Connection1, Stmt1;
   SQLLEN rc;
   SQLCHAR conn[512];
-  SQLCHAR buff[10];
+  SQLCHAR buff[100];
   SQLLEN len = 0;
 
   sprintf((char *) conn, "DRIVER=%s;SERVER=%s;UID=%s;PASSWORD=%s;DATABASE=%s;%s;%s;NO_CACHE=%d",
@@ -2237,7 +2237,7 @@ int checkGetDataLength(int noCache) {
     CHECK_STMT_RC(Stmt1, SQLFetch(Stmt1));
     CHECK_STMT_RC(Stmt1, SQLGetData(Stmt1, 1, SQL_C_WCHAR, buff, sizeof(buff), &len));
     is_num(len, 4*sizeof(SQLWCHAR));
-    IS_WSTR(buff, CW(L"\x03A8\x0391\x03A1\x039F"), len/sizeof(SQLWCHAR)+1);
+    IS_WSTR(buff, W(L"\x03A8\x0391\x03A1\x039F"), len/sizeof(SQLWCHAR)+1);
   }
 
   CHECK_STMT_RC(Stmt1, SQLFreeHandle(SQL_HANDLE_STMT, Stmt1));
