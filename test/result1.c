@@ -2213,6 +2213,7 @@ int checkGetDataLength(int noCache) {
   OK_SIMPLE_STMT(Stmt1, "DROP TABLE IF EXISTS check_get_data_length");
   OK_SIMPLE_STMT(Stmt1, "CREATE TABLE check_get_data_length (text VARCHAR(16))");
   OK_SIMPLE_STMT(Stmt1, "INSERT INTO check_get_data_length VALUES ('a'), ('bb'), ('ccc')");
+  OK_SIMPLE_STMTW(Stmt1, W(L"INSERT INTO check_get_data_length VALUES ('\x03A8\x0391\x03A1\x039F')"))
   OK_SIMPLE_STMT(Stmt1, "SELECT * FROM check_get_data_length ORDER BY text");
 
   CHECK_STMT_RC(Stmt1, SQLFetch(Stmt1));
@@ -2229,6 +2230,11 @@ int checkGetDataLength(int noCache) {
   CHECK_STMT_RC(Stmt1, SQLGetData(Stmt1, 1, SQL_C_CHAR, buff, sizeof(buff), &len));
   is_num(len, 3);
   IS_STR(buff, "ccc", len);
+
+  CHECK_STMT_RC(Stmt1, SQLFetch(Stmt1));
+  CHECK_STMT_RC(Stmt1, SQLGetData(Stmt1, 1, SQL_C_WCHAR, buff, sizeof(buff), &len));
+  is_num(len, 8);
+  IS_WSTR(buff, W(L"\x03A8\x0391\x03A1\x039F"), len/sizeof(SQLWCHAR)+1);
 
   CHECK_STMT_RC(Stmt1, SQLFreeHandle(SQL_HANDLE_STMT, Stmt1));
   CHECK_DBC_RC(Connection1, SQLDisconnect(Connection1));
