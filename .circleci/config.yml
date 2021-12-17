@@ -165,7 +165,6 @@ jobs:
       WITH_SANITIZER: << parameters.with_sanitizer >>
       BUILD_TYPE: << parameters.build_type >>
       MEMSQL_IMAGE: << parameters.memsql_image >>
-      MEMSQL_PASSWORD: password
       TEST_DRIVER: << parameters.test_driver >>
       TEST_DSN: << parameters.test_dsn >>
       TEST_SERVER: singlestore.test.com
