@@ -26,6 +26,13 @@ REGISTER_PLUGIN(TARGET mysql_native_password
                 DEFAULT STATIC
                 SOURCES ${CC_SOURCE_DIR}/plugins/auth/my_auth.c)
 
+# Cleartext (used for JWT auth)
+REGISTER_PLUGIN(TARGET mysql_clear_password
+                TYPE MARIADB_CLIENT_PLUGIN_AUTH
+                CONFIGURATIONS STATIC
+                DEFAULT STATIC
+                SOURCES ${AUTH_DIR}/mariadb_cleartext.c)
+
 #Dialog client authentication plugin
 REGISTER_PLUGIN(TARGET dialog
                 TYPE MARIADB_CLIENT_PLUGIN_AUTH
@@ -33,7 +40,6 @@ REGISTER_PLUGIN(TARGET dialog
                 DEFAULT DYNAMIC
                 SOURCES ${CC_SOURCE_DIR}/plugins/auth/dialog.c
                         ${CC_SOURCE_DIR}/libmariadb/get_password.c)
-
 
 # Crypto plugins
 IF(CRYPTO_PLUGIN)
@@ -122,9 +128,3 @@ REGISTER_PLUGIN(TARGET mysql_old_password
                 DEFAULT STATIC
                 SOURCES ${AUTH_DIR}/old_password.c)
 
-# Cleartext
-REGISTER_PLUGIN(TARGET mysql_clear_password
-                TYPE MARIADB_CLIENT_PLUGIN_AUTH
-                CONFIGURATIONS STATIC
-                DEFAULT STATIC
-                SOURCES ${AUTH_DIR}/mariadb_cleartext.c)
