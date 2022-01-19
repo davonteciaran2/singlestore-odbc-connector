@@ -125,7 +125,6 @@ REGISTER_PLUGIN(TARGET mysql_old_password
 # Cleartext
 REGISTER_PLUGIN(TARGET mysql_clear_password
                 TYPE MARIADB_CLIENT_PLUGIN_AUTH
-                CONFIGURATIONS DYNAMIC STATIC OFF
-                DEFAULT DYNAMIC
+                CONFIGURATIONS STATIC
+                DEFAULT STATIC
                 SOURCES ${AUTH_DIR}/mariadb_cleartext.c)
-
