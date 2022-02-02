@@ -404,13 +404,6 @@ workflows:
               driver_type:
                 - ansi
   daily:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - master
     jobs:
       - build-ubuntu:
           name: build-ubuntu-sanitizer-unicode-7.6.5-<< matrix.build_type >>
