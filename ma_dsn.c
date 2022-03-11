@@ -80,8 +80,8 @@ MADB_DsnKey DsnKeys[]=
   {"FORWARDONLY",    offsetof(MADB_Dsn, ForceForwardOnly),  DSN_TYPE_OPTION, MADB_OPT_FLAG_FORWARD_CURSOR, 0},
   {"COMPAT_MODE",    offsetof(MADB_Dsn, CompatMode),        DSN_TYPE_BOOL,   0, 0}, /* MYSQL_COMPATIBILITY_MODE */
   {"NO_SSPS",        offsetof(MADB_Dsn, NoSsps),            DSN_TYPE_BOOL,   0, 0},
-  {"NO_CACHE",       offsetof(MADB_Dsn, NoCache),           DSN_TYPE_BOOL,   MADB_OPT_FLAG_NO_CACHE, 0},
-  {"APP",       offsetof(MADB_Dsn, App),           DSN_TYPE_STRING, 0, 0},
+  {"NO_CACHE",       offsetof(MADB_Dsn, NoCache),           DSN_TYPE_OPTION, MADB_OPT_FLAG_NO_CACHE, 0},
+  {"APP",            offsetof(MADB_Dsn, App),               DSN_TYPE_STRING, 0, 0},
   /* Aliases. Here offset is index of aliased key */
   {"SERVERNAME",     DSNKEY_SERVER_INDEX,                   DSN_TYPE_STRING, 0, 1},
   {"USER",           DSNKEY_UID_INDEX,                      DSN_TYPE_STRING, 0, 1},
@@ -531,7 +531,7 @@ my_bool MADB_ParseConnString(MADB_Dsn *Dsn, const char *String, int Length, char
       break;
     }
 
-    *Value= 0;
+    *Value= 0;  // marks the end of `Key` string
     ++Value;
     Key= trim(Key);
 
