@@ -119,7 +119,6 @@ const char TlsVersionBits[]=    {MADB_TLSV11, MADB_TLSV12, MADB_TLSV13};
 void MADB_DSN_SetDefaults(MADB_Dsn *Dsn)
 {
   Dsn->IsTcpIp= 1;
-  Dsn->Options = MADB_OPT_FLAG_NO_CACHE;
   Dsn->NoSsps = 1;
 }
 /* }}} */
