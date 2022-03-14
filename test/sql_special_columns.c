@@ -21,7 +21,7 @@
 
 #define SQL_COLUMNS_BUFFER_LEN 256
 
-SQLCHAR *add_params = "NO_CACHE=0";
+SQLCHAR *params_no_cache_false = "NO_CACHE=0";
 
 int run_sql_special_columns(SQLHANDLE Stmt, const SQLSMALLINT *ExpDataType) {
     const int ExpNumOfRowsFetched = 10;
@@ -112,7 +112,7 @@ ODBC_TEST(t_specialcolumns3U) {
     SQLCHAR conn[512];
 
     sprintf((char *) conn, "DRIVER=%s;SERVER=%s;UID=%s;PASSWORD=%s;DATABASE=%s;%s;%s",
-            my_drivername, my_servername, my_uid, my_pwd, my_schema, ma_strport, add_params);
+            my_drivername, my_servername, my_uid, my_pwd, my_schema, ma_strport, params_no_cache_false);
 
     CHECK_ENV_RC(henv1, SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv1));
     CHECK_ENV_RC(henv1, SQLSetEnvAttr(henv1, SQL_ATTR_ODBC_VERSION,
@@ -146,7 +146,7 @@ ODBC_TEST(t_specialcolumns3A) {
     SQLCHAR conn[512];
 
     sprintf((char *) conn, "DRIVER=%s;SERVER=%s;UID=%s;PASSWORD=%s;DATABASE=%s;%s;%s",
-            my_drivername, my_servername, my_uid, my_pwd, my_schema, ma_strport, add_params);
+            my_drivername, my_servername, my_uid, my_pwd, my_schema, ma_strport, params_no_cache_false);
 
     CHECK_ENV_RC(henv1, SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv1));
     CHECK_ENV_RC(henv1, SQLSetEnvAttr(henv1, SQL_ATTR_ODBC_VERSION,
@@ -180,7 +180,7 @@ ODBC_TEST(t_specialcolumns2U) {
     SQLCHAR conn[512];
 
     sprintf((char *) conn, "DRIVER=%s;SERVER=%s;UID=%s;PASSWORD=%s;DATABASE=%s;%s;%s",
-            my_drivername, my_servername, my_uid, my_pwd, my_schema, ma_strport, add_params);
+            my_drivername, my_servername, my_uid, my_pwd, my_schema, ma_strport, params_no_cache_false);
 
     CHECK_ENV_RC(henv1, SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv1));
     CHECK_ENV_RC(henv1, SQLSetEnvAttr(henv1, SQL_ATTR_ODBC_VERSION,
@@ -214,7 +214,7 @@ ODBC_TEST(t_specialcolumns2A) {
     SQLCHAR conn[512];
 
     sprintf((char *) conn, "DRIVER=%s;SERVER=%s;UID=%s;PASSWORD=%s;DATABASE=%s;%s;%s",
-            my_drivername, my_servername, my_uid, my_pwd, my_schema, ma_strport, add_params);
+            my_drivername, my_servername, my_uid, my_pwd, my_schema, ma_strport, params_no_cache_false);
 
     CHECK_ENV_RC(henv1, SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv1));
     CHECK_ENV_RC(henv1, SQLSetEnvAttr(henv1, SQL_ATTR_ODBC_VERSION,
