@@ -103,7 +103,7 @@ jobs:
       driver_type:
         type: string
     macos:
-      xcode: 13.2.1
+      xcode: 12.4
     environment:
       BUILD_TYPE: << parameters.build_type >>
       TEST_DSN: << parameters.test_dsn >>
@@ -259,8 +259,10 @@ jobs:
     parameters:
       build_type:
         type: string
+      xcode_version:
+        type: string
     macos:
-      xcode: 13.2.1
+      xcode: << parameters.xcode_version >>
     environment:
       BUILD_TYPE: << parameters.build_type >>
       CONTINUOUS_INTEGRATION: true
@@ -272,7 +274,7 @@ jobs:
           command: |
             ./.circleci/build-osx.sh
       - store_artifacts:
-          path: /Users/distiller/project/osxinstall/singlestore-connector-odbc-<< pipeline.parameters.driver-version >>-osx-x86_64.pkg
+          path: /Users/distiller/project/osxinstall/singlestore-connector-odbc-<< pipeline.parameters.driver-version >>-osx-<< parameters.xcode_version >>-x86_64.pkg
 
   publish-linux:
     parameters:
@@ -751,6 +753,20 @@ workflows:
             parameters:
               build_type:
                 - RelWithDebInfo
+              xcode_version:
+                - "13.2.1"
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - publish-macos:
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              xcode_version:
+                - "12.4"
           filters:
             tags:
               only: /^v.*/
