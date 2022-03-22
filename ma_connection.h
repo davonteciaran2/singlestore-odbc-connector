@@ -62,7 +62,7 @@ typedef struct BrowserCredentials {
   char *version;
 } BrowserAuthCredentials;
 BrowserAuthCredentials *BrowserAuth(MADB_Dbc *Dbc, const char *AuthHelperPath, const char* Email);
-void BrowserAuthCredentialsFree(BrowserAuthCredentials **bac);
+void BrowserAuthCredentialsFree(BrowserAuthCredentials *bac);
 
 SQLRETURN MADB_DbcFree(MADB_Dbc *Connection);
 MADB_Dbc * MADB_DbcInit(MADB_Env *Env);

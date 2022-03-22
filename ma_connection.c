@@ -144,19 +144,19 @@ int GetJsonField(MADB_Dbc *Dbc, cJSON *json, const char *fieldName, char **dst)
   return 0;
 }
 
-void BrowserAuthCredentialsFree(BrowserAuthCredentials **bac)
+void BrowserAuthCredentialsFree(BrowserAuthCredentials *bac)
 {
-  if (*bac) {
-    MADB_FREE((*bac)->expiration);
-    MADB_FREE((*bac)->token);
-    MADB_FREE((*bac)->username);
-    MADB_FREE((*bac)->email);
-    MADB_FREE((*bac)->version);
-    MADB_FREE(*bac);
+  if (bac) {
+    MADB_FREE(bac->expiration);
+    MADB_FREE(bac->token);
+    MADB_FREE(bac->username);
+    MADB_FREE(bac->email);
+    MADB_FREE(bac->version);
+    MADB_FREE(bac);
   }
 }
 
-#define BUFFER_SIZE 128
+#define BUFFER_SIZE 1280
 BrowserAuthCredentials *BrowserAuth(MADB_Dbc *Dbc, const char *AuthHelperPath, const char* Email)
 {
   BrowserAuthCredentials *bac;
