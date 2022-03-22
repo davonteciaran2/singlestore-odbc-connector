@@ -190,7 +190,13 @@ BrowserAuthCredentials *BrowserAuth(MADB_Dbc *Dbc, const char *AuthHelperPath, c
   }
 
   // execute a command and open pipe to file
-  FILE* pipe = popen(command.str, "r");
+  FILE* pipe =
+#ifdef WIN32
+    _popen(command.str, "r");
+#else
+    popen(command.str, "r");
+#endif
+
   if (!pipe) {
     MADB_SetError(&Dbc->Error, MADB_ERR_28000, "Failed to read browser authentication result", 0);
     goto end;
@@ -211,6 +217,13 @@ BrowserAuthCredentials *BrowserAuth(MADB_Dbc *Dbc, const char *AuthHelperPath, c
       }
     }
   }
+
+  // close pipe
+#ifdef WIN32
+  _pclose(pipe);
+#else
+  pclose(pipe);
+#endif
 
   // parse JSON
   json = cJSON_Parse(command_output.str);
