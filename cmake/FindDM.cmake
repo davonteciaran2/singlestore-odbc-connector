@@ -21,22 +21,25 @@
 # We expect that the driver manager is UnixODBC
 
 IF(WITH_IODBC)
+  MESSAGE(STATUS "Building with IODBC")
   SET(ODBC_CONFIG_EXEC iodbc-config)
   SET(ODBC_CONFIG_INCLUDES --cflags)
   SET(ODBC_CONFIG_LIBS --libs)
   SET(ODBC_LIBS iodbc)
   SET(ODBC_INSTLIBS iodbcinst)
-ELSE() #UnixODBC
+ELSE(WITH_IODBC)  # UnixODBC
+  MESSAGE(STATUS "Building with UnixODBC")
   SET(ODBC_CONFIG_EXEC odbc_config)
   SET(ODBC_CONFIG_INCLUDES --include-prefix)
   SET(ODBC_CONFIG_LIBS --lib-prefix)
   SET(ODBC_LIBS odbc)
   SET(ODBC_INSTLIBS odbcinst)
-ENDIF()
+ENDIF(WITH_IODBC)
 
 IF(ODBC_LIB_DIR AND ODBC_INCLUDE_DIR)
   MESSAGE(STATUS "Using preset values for DM dirs") 
 ELSE()
+MESSAGE(STATUS "Looking for ${ODBC_CONFIG_EXEC} in ${DM_DIR}")
   FIND_PROGRAM(ODBC_CONFIG ${ODBC_CONFIG_EXEC}
                PATH
                /usr/bin

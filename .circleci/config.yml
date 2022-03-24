@@ -47,7 +47,7 @@ commands:
             brew update
             brew install openssl@1.1
             brew install curl
-            brew install libiodbc
+            brew install unixodbc
             brew install mysql-client
             brew install cmake
             brew cleanup
