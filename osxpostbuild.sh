@@ -22,6 +22,7 @@ set -x
 echo $1
 LinkedLibName=`otool -L $1 | grep -i iodbcinst | sed 's/	//' | sed 's/ [(].*$//'`
 install_name_tool -change $LinkedLibName @rpath/libiodbcinst.dylib $1
+install_name_tool -add_rpath /Library/SingleStore/SingleStore-Connector-ODBC $1
 LinkedLibName=`otool -L $1 | grep -i libgnutls | sed 's/	//' | sed 's/ [(].*$//'`
 if [ $LinkedLibName ] ; then
   LinkedLibFileName=`echo $LinkedLibName | sed 's/.*[/]//'`

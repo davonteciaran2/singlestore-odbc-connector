@@ -23,7 +23,8 @@ set -eo pipefail
 # set variables for odbc.ini and odbcinst.ini
 export ODBCINI="$PWD/test/odbc.ini"
 cat ${ODBCINI}
-export ODBCSYSINI="$PWD/test"
+export ODBCINSTINI="$PWD/test/odbcinst.ini"
+cat ${ODBCINSTINI}
 
 echo "Modifying /etc/hosts and ~/my.cnf to enable connect tests"
 echo "${TEST_SERVER} test-memsql-server" | sudo tee -a /etc/hosts

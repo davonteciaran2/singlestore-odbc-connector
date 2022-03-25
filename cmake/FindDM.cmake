@@ -39,7 +39,6 @@ ENDIF(WITH_IODBC)
 IF(ODBC_LIB_DIR AND ODBC_INCLUDE_DIR)
   MESSAGE(STATUS "Using preset values for DM dirs") 
 ELSE()
-MESSAGE(STATUS "Looking for ${ODBC_CONFIG_EXEC} in ${DM_DIR}")
   FIND_PROGRAM(ODBC_CONFIG ${ODBC_CONFIG_EXEC}
                PATH
                /usr/bin
@@ -61,10 +60,10 @@ MESSAGE(STATUS "Looking for ${ODBC_CONFIG_EXEC} in ${DM_DIR}")
       STRING(REPLACE "-L" "" ODBC_LIB_DIR ${ODBC_LIB_DIR})
       STRING(REGEX REPLACE " +-liodbc -liodbcinst" "" ODBC_LIB_DIR ${ODBC_LIB_DIR})
     ENDIF()
-  ELSE()
-    MESSAGE(STATUS "${ODBC_CONFIG_EXEC} is not found ")
+  ELSE(ODBC_CONFIG)
+    MESSAGE(STATUS "${ODBC_CONFIG_EXEC} not found ")
     # Try to find the include directory, giving precedence to special variables
-    SET(LIB_PATHS /usr/local /usr /usr/local/Cellar/libiodbc/3.52.12)
+    SET(LIB_PATHS /usr/local /usr /usr/local/iODBC/lib /usr/local/Cellar/libiodbc/3.52.12)
 
     IF("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
       SET(LIB_PATHS "${LIB_PATHS}" "/usr/lib/x86_64-linux-gnu")
@@ -88,7 +87,7 @@ MESSAGE(STATUS "Looking for ${ODBC_CONFIG_EXEC} in ${DM_DIR}")
         PATHS /usr/local
               /usr
               /usr/local/Cellar/libiodbc/3.52.12
-        PATH_SUFFIXES include include/iodbc
+        PATH_SUFFIXES include include/iodbc iODBC/include
         NO_DEFAULT_PATH
         DOC "Driver Manager Includes")
     # Giving chance to cmake_(environment)path
@@ -99,29 +98,54 @@ MESSAGE(STATUS "Looking for ${ODBC_CONFIG_EXEC} in ${DM_DIR}")
       MESSAGE(STATUS "Found ODBC Driver Manager includes: ${ODBC_INCLUDE_DIR}")
     ENDIF()
     # Try to find DM libraries, giving precedence to special variables
-    FIND_PATH(ODBC_LIB_DIR "lib${ODBC_LIBS}.so"
-        HINTS ${DM_LIB_DIR}
-              ${DM_DIR}
-              ENV DM_LIB_DIR
-              ENV DM_DIR
-        PATHS ${LIB_PATHS}
-        PATH_SUFFIXES ${LIB_SUFFIX} 
-        NO_DEFAULT_PATH
-        DOC "Driver Manager Libraries")
-    FIND_PATH(ODBC_LIB_DIR "lib${ODBC_LIBS}.so"
-        DOC "Driver Manager Libraries")
-    FIND_PATH(ODBCINST_LIB_DIR "lib${ODBC_INSTLIBS}.so"
-        HINTS ${DM_LIB_DIR}
-              ${DM_DIR}
-              ENV DM_LIB_DIR
-              ENV DM_DIR
-        PATHS ${LIB_PATHS}
-        PATH_SUFFIXES ${LIB_SUFFIX} 
-        NO_DEFAULT_PATH
-        DOC "Driver Manager Libraries")
-    FIND_PATH(ODBCINST_LIB_DIR "lib${ODBC_INSTLIBS}.so"
-        DOC "Driver Manager Libraries")
-  ENDIF()
+    IF(APPLE)
+      FIND_PATH(ODBC_LIB_DIR "lib${ODBC_LIBS}.dylib"
+          HINTS ${DM_LIB_DIR}
+                ${DM_DIR}
+                ENV DM_LIB_DIR
+                ENV DM_DIR
+          PATHS ${LIB_PATHS}
+          PATH_SUFFIXES ${LIB_SUFFIX}
+          NO_DEFAULT_PATH
+          DOC "Driver Manager Libraries")
+      FIND_PATH(ODBC_LIB_DIR "lib${ODBC_LIBS}.dylib"
+          DOC "Driver Manager Libraries")
+      FIND_PATH(ODBCINST_LIB_DIR "lib${ODBCINST_LIBS}.dylib"
+          HINTS ${DM_LIB_DIR}
+                ${DM_DIR}
+                ENV DM_LIB_DIR
+                ENV DM_DIR
+          PATHS ${LIB_PATHS}
+          PATH_SUFFIXES ${LIB_SUFFIX}
+          NO_DEFAULT_PATH
+          DOC "Driver Manager Libraries")
+      FIND_PATH(ODBCINST_LIB_DIR "lib${ODBCINST_LIBS}.dylib"
+          DOC "Driver Manager Libraries")
+    ELSE(APPLE)
+      FIND_PATH(ODBC_LIB_DIR "lib${ODBC_LIBS}.so"
+          HINTS ${DM_LIB_DIR}
+                ${DM_DIR}
+                ENV DM_LIB_DIR
+                ENV DM_DIR
+          PATHS ${LIB_PATHS}
+          PATH_SUFFIXES ${LIB_SUFFIX}
+          NO_DEFAULT_PATH
+          DOC "Driver Manager Libraries")
+      FIND_PATH(ODBC_LIB_DIR "lib${ODBC_LIBS}.so"
+          DOC "Driver Manager Libraries")
+      FIND_PATH(ODBCINST_LIB_DIR "lib${ODBC_INSTLIBS}.so"
+          HINTS ${DM_LIB_DIR}
+                ${DM_DIR}
+                ENV DM_LIB_DIR
+                ENV DM_DIR
+          PATHS ${LIB_PATHS}
+          PATH_SUFFIXES ${LIB_SUFFIX}
+          NO_DEFAULT_PATH
+          DOC "Driver Manager Libraries")
+      FIND_PATH(ODBCINST_LIB_DIR "lib${ODBC_INSTLIBS}.so"
+          DOC "Driver Manager Libraries")
+    ENDIF(APPLE)
+  ENDIF(ODBC_CONFIG)
 ENDIF()
 
 IF(ODBC_LIB_DIR AND ODBC_INCLUDE_DIR)

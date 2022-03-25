@@ -9,6 +9,7 @@ IF(APPLE)
   find_path(ICONV_INCLUDE_DIR iconv.h PATHS
             /opt/local/include/
             /usr/include/
+            /usr/local/include/
             /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/
             /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/
             NO_CMAKE_SYSTEM_PATH)
@@ -20,6 +21,7 @@ IF(APPLE)
   find_library(ICONV_LIBRARIES NAMES iconv libiconv c PATHS
                /opt/local/lib/
                /usr/lib/
+               /usr/local/lib/
                /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/
                /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/
                NO_CMAKE_SYSTEM_PATH)

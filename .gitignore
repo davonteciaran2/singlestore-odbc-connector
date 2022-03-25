@@ -118,11 +118,13 @@ libmariadb/RelWithDebInfo
 build
 .vscode
 
+osxinstall/install_driver
 osxinstall/WELCOME.html
 osxinstall/scripts/postinstall
 osxinstall/build_package.sh
 osxinstall/distribution.plist
-osxinstall/
+osxinstall/ROOT
+osxinstall/*.pkg
 
 cmake-build-debug/
 cmake-build-relwithdebinfo/
