@@ -31,11 +31,8 @@ else
   apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0E98404D386FA1D9  # Debian 11/bullseye archive signing key
   apt-key adv --recv-keys --keyserver keyserver.ubuntu.com DCC9EFBF77E11517  # Debian 10/buster release key
   apt-get update
-  apt-get install -y make gcc libssl-dev dnsutils
+  apt-get install -y cmake make gcc libssl-dev dnsutils
   echo "deb http://deb.debian.org/debian buster main contrib non-free" >> /etc/apt/sources.list.d/tutu.list
   apt-get update
-  apt-get install -y unixodbc-dev=2.3.6-0.1 wget
-  wget https://github.com/Kitware/CMake/releases/download/v3.20.3/cmake-3.20.3-linux-x86_64.tar.gz
-  cd /usr || exit
-  tar --strip-components=1 -xzf /root/project/cmake-3.20.3-linux-x86_64.tar.gz
+  apt-get install -y unixodbc-dev=2.3.6-0.1
 fi
