@@ -39,7 +39,7 @@
 
 #define BUFFER_SIZE 2048
 #define TOKEN "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QtZW1haWxAZ21haWwuY29tIiwiZGJVc2VybmFtZSI6InRlc3QtdXNlciIsImV4cCI6MTkxNjIzOTAyMn0.kQPJ2yLs8-G5bUuYBddmyKGQmaimVop2mptZ5IqtF3c"
-#define HTTP_200 "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
+#define HTTP_200 "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
 
 int invalidSocketCheck(SOCKET_ s)
 {

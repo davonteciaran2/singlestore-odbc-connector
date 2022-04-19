@@ -334,7 +334,7 @@ long tryGetFullRequestLength(const char *request)
 }
 
 #define BUFFER_SIZE 2048
-#define HTTP_200 "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
+#define HTTP_200 "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
 #define HTTP_400 "HTTP/1.1 400 Bad Request\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
 #define HTTP_500 "HTTP/1.1 500 Internal Server Error\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
 int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, BrowserAuthCredentials *credentials)
