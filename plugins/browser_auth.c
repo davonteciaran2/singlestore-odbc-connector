@@ -26,6 +26,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <fcntl.h>
 #endif
 #include <vendor/b64.c/b64.h>
 #include <vendor/cJSON/cJSON.h>
