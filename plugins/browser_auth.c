@@ -476,14 +476,21 @@ cleanupRequest:
 
 int BrowserAuthInternal(MADB_Dbc *Dbc, char *email, char *endpoint, int requestReadTimeoutSec, BrowserAuthCredentials *credentials)
 {
+  printf("BrowserAuth 0\n");
+  fflush(stdout);
+
   MADB_DynString serverEndpoint;
   MADB_DynString openBrowserCommand;
   SOCKET_ serverSocket;
 
+  printf("BrowserAuth 1\n");
+  fflush(stdout);
   if (MADB_InitDynamicString(&serverEndpoint, "", BUFFER_SIZE, BUFFER_SIZE))
   {
     return MADB_SetError(&Dbc->Error, MADB_ERR_HY001, NULL, 0);
   }
+  printf("BrowserAuth 2\n");
+  fflush(stdout);
   if (MADB_InitDynamicString(&openBrowserCommand, "", BUFFER_SIZE, BUFFER_SIZE))
   {
     MADB_SetError(&Dbc->Error, MADB_ERR_HY001, NULL, 0);
@@ -491,14 +498,20 @@ int BrowserAuthInternal(MADB_Dbc *Dbc, char *email, char *endpoint, int requestR
   }
 
 
+  printf("BrowserAuth 3\n");
+  fflush(stdout);
   if (startLocalHttpServer(Dbc, &serverSocket, &serverEndpoint))
   {
     goto cleanupOpenBrowserCommand;
   }
+  printf("BrowserAuth 4\n");
+  fflush(stdout);
   if (getOpenBrowserCommand(Dbc, serverEndpoint.str, email, endpoint, &openBrowserCommand))
   {
     goto cleanupServer;
   }
+  printf("BrowserAuth 5 %s\n", openBrowserCommand.str);
+  fflush(stdout);
   if (system(openBrowserCommand.str))
   {
     MADB_SetError(&Dbc->Error, MADB_ERR_S1000, "Failed to open browser", 0);
@@ -506,11 +519,15 @@ int BrowserAuthInternal(MADB_Dbc *Dbc, char *email, char *endpoint, int requestR
   }
 
 
+  printf("BrowserAuth 6\n");
+  fflush(stdout);
   if (readRequest(Dbc, serverSocket, requestReadTimeoutSec, credentials))
   {
     goto cleanupServer;
   }
 
+  printf("BrowserAuth 7\n");
+  fflush(stdout);
 cleanupServer:
   closeSocket(serverSocket);
 cleanupOpenBrowserCommand:
