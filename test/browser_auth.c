@@ -274,7 +274,7 @@ int main(int argc, char **argv)
   printf("main 41 %d\n", (res == 0));
   fflush(stdout);
 #ifdef WIN32
-  WaitForSingleObject(thread, INFINITE);
+  //WaitForSingleObject(thread, INFINITE);
 #else
   printf("main 5\n");
   fflush(stdout);
