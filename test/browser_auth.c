@@ -155,9 +155,9 @@ void sendJWT(char *url)
 #ifdef WIN32
   strcat(command, "START /B ");
 #endif
-  strcat(command, "curl -X POST -d '");
+  strcat(command, "curl -X POST -d \"");
   strcat(command, TOKEN);
-  strcat(command, "' ");
+  strcat(command, "\" ");
   strcat(command, url);
 
   system(command);
