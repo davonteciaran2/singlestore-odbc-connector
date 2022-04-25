@@ -92,7 +92,7 @@ int closeSocket(SOCKET_ s)
 int getOpenBrowserCommand(MADB_Dbc *Dbc, char *returnTo, char *email, char *endpoint, MADB_DynString *openBrowserCommand)
 {
 #ifdef WIN32
-  if (MADB_DynstrAppend(openBrowserCommand, "START /B rundll32 url.dll,FileProtocolHandler "))
+  if (MADB_DynstrAppend(openBrowserCommand, "START /B curl "))
 #elif __APPLE__
   if (MADB_DynstrAppend(openBrowserCommand, "open "))
 #else

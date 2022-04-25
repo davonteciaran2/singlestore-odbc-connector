@@ -413,7 +413,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -425,7 +425,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -437,7 +437,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -449,7 +449,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -461,7 +461,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -473,7 +473,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -485,7 +485,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -497,7 +497,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -509,7 +509,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -521,7 +521,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -533,7 +533,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -545,7 +545,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -557,7 +557,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -569,7 +569,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - RelWithDebInfo
+                - Debug
               test_dsn:
                 - ssodbc_test_a
               test_driver:
