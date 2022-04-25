@@ -153,7 +153,7 @@ void sendJWT(char *url)
 
   memset(command ,0 , BUFFER_SIZE);
 #ifdef WIN32
-  strcat(command, "START /B ");
+  strcat(command, "start ");
 #endif
   strcat(command, "curl -X POST -d \"");
   strcat(command, TOKEN);
