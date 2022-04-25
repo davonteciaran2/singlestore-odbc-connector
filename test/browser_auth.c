@@ -287,6 +287,7 @@ int main(int argc, char **argv)
   printf("main 7\n");
   fflush(stdout);
   assert(!strcmp(creds.email, "test-email@gmail.com") && "Wrong email");
+  printf("main 71 %s %s\n", creds.token, TOKEN);
   assert(!strcmp(creds.token, TOKEN) && "Wrong token");
   assert(!strcmp(creds.username, "test-user") && "Wrong username");
   assert(creds.expiration == 1916239022 && "Wrong exp");
