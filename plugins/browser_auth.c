@@ -92,7 +92,7 @@ int closeSocket(SOCKET_ s)
 int getOpenBrowserCommand(MADB_Dbc *Dbc, char *returnTo, char *email, char *endpoint, MADB_DynString *openBrowserCommand)
 {
 #ifdef WIN32
-  if (MADB_DynstrAppend(openBrowserCommand, "START /B "))
+  if (MADB_DynstrAppend(openBrowserCommand, "START /B \"\""))
 #elif __APPLE__
   if (MADB_DynstrAppend(openBrowserCommand, "open "))
 #else
@@ -101,14 +101,14 @@ int getOpenBrowserCommand(MADB_Dbc *Dbc, char *returnTo, char *email, char *endp
   {
     return MADB_SetError(&Dbc->Error, MADB_ERR_HY001, NULL, 0);
   }
-  if (/*MADB_DynstrAppend(openBrowserCommand, "\"") ||*/
+  if (MADB_DynstrAppend(openBrowserCommand, "\"") ||
       MADB_DynstrAppend(openBrowserCommand, endpoint == NULL ? PORTAL_SSO_ENDPOINT: endpoint) ||
       MADB_DynstrAppend(openBrowserCommand, "?returnTo=") ||
       MADB_DynstrAppend(openBrowserCommand, returnTo) ||
       (email &&
        (MADB_DynstrAppend(openBrowserCommand, "&email=") ||
-        MADB_DynstrAppend(openBrowserCommand, email))) /*||
-      MADB_DynstrAppend(openBrowserCommand, "\"")*/)
+        MADB_DynstrAppend(openBrowserCommand, email))) ||
+      MADB_DynstrAppend(openBrowserCommand, "\""))
   {
     return MADB_SetError(&Dbc->Error, MADB_ERR_HY001, NULL, 0);
   }
