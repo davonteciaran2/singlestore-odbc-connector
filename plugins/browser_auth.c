@@ -418,6 +418,8 @@ int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, 
         fflush(stdout);
         MADB_SetError(&Dbc->Error, MADB_ERR_HYT00, "Browser authentication response timeout expired", 0);
         send(clientSocket, HTTP_400, sizeof(HTTP_400), 0);
+        printf("readRequest421 %d\n", Dbc->Error.ReturnValue);
+        fflush(stdout);
         goto cleanupRequest;
       }
 
