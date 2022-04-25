@@ -68,6 +68,7 @@ jobs:
       driver_type:
         type: string
     executor: win/default
+    resource_class: large
     environment:
       BUILD_TYPE: << parameters.build_type >>
       TEST_DRIVER: << parameters.test_driver >>
