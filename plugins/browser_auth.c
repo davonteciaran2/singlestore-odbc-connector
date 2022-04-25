@@ -380,6 +380,8 @@ void sleepMicroseconds(int microseconds)
 #define HTTP_500 "HTTP/1.1 500 Internal Server Error\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
 int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, BrowserAuthCredentials *credentials)
 {
+  printf("readRequest1\n");
+  fflush(stdout);
   int size_recv;
   char buff[BUFFER_SIZE];
   SOCKET_ clientSocket;
@@ -467,6 +469,7 @@ int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, 
 
   size_recv = send(clientSocket, HTTP_204, sizeof(HTTP_204), 0);
   printf("readRequest %d\n", size_recv);
+  fflush(stdout);
 
 cleanupSocket:
   closeSocket(clientSocket);
