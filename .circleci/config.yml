@@ -100,7 +100,7 @@ jobs:
       - run:
           name: Make Default
           command: |
-            SetDefaultBrowser "Google Chrome"
+            ./SetDefaultBrowser "chrome"
       - run:
           name: Build project
           command: |
