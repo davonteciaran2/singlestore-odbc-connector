@@ -152,6 +152,9 @@ void sendJWT(char *url)
   char command[BUFFER_SIZE];
 
   memset(command ,0 , BUFFER_SIZE);
+#ifdef WIN32
+  strcat(command, "START /B ");
+#endif
   strcat(command, "curl -X POST -d '");
   strcat(command, TOKEN);
   strcat(command, "' ");
@@ -268,7 +271,7 @@ int main(int argc, char **argv)
   fflush(stdout);
   assert(!res && "Browser authentication failed");
 #ifdef WIN32
-  // WaitForSingleObject(thread, INFINITE);
+  WaitForSingleObject(thread, INFINITE);
 #else
   printf("main 5\n");
   fflush(stdout);
