@@ -25,6 +25,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -41,6 +42,34 @@
 #define BUFFER_SIZE 2048
 #define TOKEN "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QtZW1haWxAZ21haWwuY29tIiwiZGJVc2VybmFtZSI6InRlc3QtdXNlciIsImV4cCI6MTkxNjIzOTAyMn0.kQPJ2yLs8-G5bUuYBddmyKGQmaimVop2mptZ5IqtF3c"
 #define HTTP_204 "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
+
+#define CONTENT_LENGTH "Content-Length: "
+long tryGetFullRequestLength(const char *request)
+{
+  char *bodyStart;
+  char *contentLengthHeader;
+  long headersLen;
+  long contentLen;
+
+  if (!(bodyStart = strstr(request, "\r\n\r\n")))
+  {
+    // request doesn't contain all headers
+    return -1;
+  }
+  bodyStart += 4;
+  headersLen = bodyStart - request;
+
+  if (!(contentLengthHeader = strstr(request, CONTENT_LENGTH)))
+  {
+    // No Content-Length header
+    // Assuming that the body is empty
+    return headersLen;
+  }
+  contentLengthHeader += strlen(CONTENT_LENGTH);
+  contentLen = strtol(contentLengthHeader, NULL, 10);
+
+  return headersLen + contentLen;
+}
 
 int makeSocketNonBlocking(SOCKET_ socket)
 {
@@ -83,6 +112,15 @@ int closeSocket(SOCKET_ s)
 #endif
 }
 
+int isBlockingError()
+{
+#ifdef WIN32
+  return WSAGetLastError() == WSAEWOULDBLOCK;
+#else
+  return errno == EAGAIN || errno == EWOULDBLOCK;
+#endif
+}
+
 SOCKET_ startMockPortal()
 {
   struct sockaddr_in serverAddress;
@@ -122,6 +160,15 @@ void sendJWT(char *url)
   system(command);
 }
 
+void sleepMicroseconds(int microseconds)
+{
+#ifdef WIN32
+  Sleep(microseconds);
+#else
+  usleep(microseconds);
+#endif
+}
+
 #ifdef WIN32
 DWORD WINAPI
 #else
@@ -134,8 +181,11 @@ handle(void *serverSocketVoid)
 
   SOCKET_ clientSocket, *serverSocket;
   char buff[BUFFER_SIZE];
+  char request[BUFFER_SIZE];
   char *umlStart, *umlEnd;
   int size_recv;
+  int length;
+  long fullRequestLength = -1;
 
   printf("handle 1\n");
   fflush(stdout);
@@ -151,17 +201,38 @@ handle(void *serverSocketVoid)
   fflush(stdout);
   // Read the result
   memset(buff ,0 , BUFFER_SIZE);
+  memset(request ,0 , BUFFER_SIZE);
   printf("handle 33\n");
   fflush(stdout);
-  size_recv = recv(clientSocket, buff, BUFFER_SIZE-1, 0);
-  printf("handle 34 %d\n", size_recv);
+
+  makeSocketNonBlocking(clientSocket);
+  while(fullRequestLength == -1 || length < fullRequestLength)
+  {
+    memset(buff, 0 , BUFFER_SIZE);
+    size_recv = recv(clientSocket, buff, BUFFER_SIZE-1, 0);
+    if (size_recv < 0)
+    {
+      assert(isBlockingError() && "Error while reading request");
+      sleepMicroseconds(10);
+      continue;
+    }
+    length += size_recv;
+
+    strcat(request, buff);
+
+    if (fullRequestLength == -1)
+    {
+      fullRequestLength = tryGetFullRequestLength(request);
+    }
+  }
+  printf("handle 34 %d\n", length);
   fflush(stdout);
-  assert(size_recv >= 0 && "Failed to read the response");
+  assert(length >= 0 && "Failed to read the response");
 
   printf("handle 4\n");
   fflush(stdout);
   // Parse port from the request
-  umlStart = strstr(buff, "returnTo=");
+  umlStart = strstr(request, "returnTo=");
   assert(umlStart && "Wrong request");
   umlStart += strlen("returnTo=");
   umlEnd = strstr(umlStart, "&");
