@@ -205,26 +205,7 @@ handle(void *serverSocketVoid)
   printf("handle 33\n");
   fflush(stdout);
 
-  makeSocketNonBlocking(clientSocket);
-  while(fullRequestLength == -1 || length < fullRequestLength)
-  {
-    memset(buff, 0 , BUFFER_SIZE);
-    size_recv = recv(clientSocket, buff, BUFFER_SIZE-1, 0);
-    if (size_recv < 0)
-    {
-      assert(isBlockingError() && "Error while reading request");
-      sleepMicroseconds(10);
-      continue;
-    }
-    length += size_recv;
-
-    strcat(request, buff);
-
-    if (fullRequestLength == -1)
-    {
-      fullRequestLength = tryGetFullRequestLength(request);
-    }
-  }
+  length = recv(clientSocket, request, BUFFER_SIZE-1, 0);
   printf("handle 34 %d\n", length);
   fflush(stdout);
   assert(length >= 0 && "Failed to read the response");
