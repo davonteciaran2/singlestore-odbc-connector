@@ -25,6 +25,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -40,6 +41,29 @@
 #define BUFFER_SIZE 2048
 #define TOKEN "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QtZW1haWxAZ21haWwuY29tIiwiZGJVc2VybmFtZSI6InRlc3QtdXNlciIsImV4cCI6MTkxNjIzOTAyMn0.kQPJ2yLs8-G5bUuYBddmyKGQmaimVop2mptZ5IqtF3c"
 #define HTTP_204 "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
+
+int makeSocketNonBlocking(SOCKET_ socket)
+{
+#ifdef WIN32
+  u_long mode = 1;  // 1 to enable non-blocking socket
+  if (ioctlsocket(socket, FIONBIO, &mode))
+  {
+    return 1;
+  }
+#else
+  int flags;
+  if ((flags = fcntl(socket, F_GETFL)) == -1)
+  {
+    return 1;
+  }
+  if (fcntl(socket, F_SETFL, flags | O_NONBLOCK) == -1)
+  {
+    return 1;
+  }
+#endif
+
+  return 0;
+}
 
 int invalidSocketCheck(SOCKET_ s)
 {
