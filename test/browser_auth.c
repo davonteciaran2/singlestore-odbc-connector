@@ -266,7 +266,8 @@ int main(int argc, char **argv)
 
   printf("main 3\n");
   fflush(stdout);
-  res = BrowserAuthInternal(hdbc, "test-email@gmail.com", "http://127.0.0.1:18087", 1, &creds);
+  sleepMicroseconds(2000000);
+  res = BrowserAuthInternal(hdbc, "test-email@gmail.com", "http://127.0.0.1:18087", 10, &creds);
   printf("main 4 %d\n", res);
   fflush(stdout);
   assert(res == 0 && "Browser authentication failed");
