@@ -270,6 +270,8 @@ int main(int argc, char **argv)
   printf("main 4\n");
   fflush(stdout);
   assert(!res && "Browser authentication failed");
+  printf("main 41\n");
+  fflush(stdout);
 #ifdef WIN32
   WaitForSingleObject(thread, INFINITE);
 #else

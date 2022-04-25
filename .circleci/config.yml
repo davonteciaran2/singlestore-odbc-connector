@@ -69,7 +69,7 @@ jobs:
         type: string
     executor:
       name: win/default
-      size: "large"
+      size: "xlarge"
     environment:
       BUILD_TYPE: << parameters.build_type >>
       TEST_DRIVER: << parameters.test_driver >>
