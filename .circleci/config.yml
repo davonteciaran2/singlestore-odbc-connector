@@ -92,15 +92,15 @@ jobs:
       - run:
           name: Download Chrome Defaulter
           command: |
-            Invoke-WebRequest https://github.com/sampalmer/set-default-browser/releases/download/1.2.2/SetDefaultBrowser.1.2.2.zip -OutFile SDB
+            Invoke-WebRequest https://kolbi.cz/SetDefaultBrowser.zip -OutFile SDB.zip
       - run:
           name: Unzip
           command: |
-            jar xf SDB
+            jar xf SDB.zip
       - run:
           name: Make Default
           command: |
-            ./SetDefaultBrowser "chrome"
+            ./SetDefaultBrowser HKLM "Google Chrome"
       - run:
           name: Build project
           command: |
