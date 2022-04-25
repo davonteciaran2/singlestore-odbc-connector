@@ -563,6 +563,8 @@ int BrowserAuthInternal(MADB_Dbc *Dbc, char *email, char *endpoint, int requestR
   fflush(stdout);
   if (readRequest(Dbc, serverSocket, requestReadTimeoutSec, credentials))
   {
+    printf("BrowserAuth 61 %d\n", Dbc->Error.ReturnValue);
+    fflush(stdout);
     goto cleanupServer;
   }
 
@@ -574,6 +576,8 @@ cleanupOpenBrowserCommand:
   MADB_DynstrFree(&openBrowserCommand);
 cleanupServerEndpoint:
   MADB_DynstrFree(&serverEndpoint);
+  printf("BrowserAuth 71 %d\n", Dbc->Error.ReturnValue);
+  fflush(stdout);
   return Dbc->Error.ReturnValue;
 }
 #undef BUFFER_SIZE
