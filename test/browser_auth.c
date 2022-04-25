@@ -271,7 +271,7 @@ int main(int argc, char **argv)
   printf("main 4 %d\n", res);
   fflush(stdout);
   assert(res == 0 && "Browser authentication failed");
-  printf("main 41 %d\n", (res == 0));
+  printf("main 41 %d\n", (res == 0 && "Browser authentication failed"));
   fflush(stdout);
 #ifdef WIN32
   //WaitForSingleObject(thread, INFINITE);
