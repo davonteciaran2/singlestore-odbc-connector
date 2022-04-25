@@ -67,8 +67,9 @@ jobs:
         type: string
       driver_type:
         type: string
-    executor: win/default
-    size: "large"
+    executor:
+      name: win/default
+      size: "large"
     environment:
       BUILD_TYPE: << parameters.build_type >>
       TEST_DRIVER: << parameters.test_driver >>
