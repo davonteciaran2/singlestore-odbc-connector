@@ -490,6 +490,90 @@ workflows:
                 - SingleStore ODBC ANSI Driver
               driver_type:
                 - ansi
+      - build-windows:
+          name: build-windows-ansi-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_a
+              test_driver:
+                - SingleStore ODBC ANSI Driver
+              driver_type:
+                - ansi
+      - build-windows:
+          name: build-windows-ansi-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_a
+              test_driver:
+                - SingleStore ODBC ANSI Driver
+              driver_type:
+                - ansi
+      - build-windows:
+          name: build-windows-ansi-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_a
+              test_driver:
+                - SingleStore ODBC ANSI Driver
+              driver_type:
+                - ansi
+      - build-windows:
+          name: build-windows-ansi-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_a
+              test_driver:
+                - SingleStore ODBC ANSI Driver
+              driver_type:
+                - ansi
+      - build-windows:
+          name: build-windows-ansi-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_a
+              test_driver:
+                - SingleStore ODBC ANSI Driver
+              driver_type:
+                - ansi
+      - build-windows:
+          name: build-windows-ansi-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_a
+              test_driver:
+                - SingleStore ODBC ANSI Driver
+              driver_type:
+                - ansi
+      - build-windows:
+          name: build-windows-ansi-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_a
+              test_driver:
+                - SingleStore ODBC ANSI Driver
+              driver_type:
+                - ansi
   daily:
     triggers:
       - schedule:
