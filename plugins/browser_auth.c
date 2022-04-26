@@ -465,7 +465,7 @@ int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, 
     goto cleanupSocket;
   }
 
-  size_recv = send(clientSocket, HTTP_204, sizeof(HTTP_204), 0);
+  send(clientSocket, HTTP_204, sizeof(HTTP_204), 0);
 
 cleanupSocket:
   closeSocket(clientSocket);
