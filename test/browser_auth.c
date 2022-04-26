@@ -99,9 +99,9 @@ void sendJWT(char *url)
   char command[BUFFER_SIZE];
 
   memset(command ,0 , BUFFER_SIZE);
-  strcat(command, "curl -X POST -d \"");
+  strcat(command, "curl -X POST -d '");
   strcat(command, TOKEN);
-  strcat(command, "\" ");
+  strcat(command, "' ");
   strcat(command, url);
 
   system(command);
