@@ -370,7 +370,7 @@ void sleepMilliseconds(int milliseconds)
 #ifdef WIN32
   Sleep(milliseconds);
 #else
-  usleep(milliseconds*1000);
+  usleep(milliseconds);
 #endif
 }
 
