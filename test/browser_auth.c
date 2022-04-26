@@ -43,11 +43,7 @@
 
 void Assert(int check, char *message)
 {
-  if (!check)
-  {
-    printf("%s\n", message);
-    exit(1);
-  }
+  assert(check && message);
 }
 
 int invalidSocketCheck(SOCKET_ s)
