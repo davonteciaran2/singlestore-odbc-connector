@@ -100,7 +100,7 @@ jobs:
       - run:
           name: Make Default
           command: |
-            ./SetDefaultBrowser HKLM "Google Chrome"
+            ./SetDefaultBrowser/SetDefaultBrowser HKLM "Google Chrome"
       - run:
           name: Build project
           command: |
