@@ -25,8 +25,6 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
-#include <errno.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -43,55 +41,13 @@
 #define TOKEN "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QtZW1haWxAZ21haWwuY29tIiwiZGJVc2VybmFtZSI6InRlc3QtdXNlciIsImV4cCI6MTkxNjIzOTAyMn0.kQPJ2yLs8-G5bUuYBddmyKGQmaimVop2mptZ5IqtF3c"
 #define HTTP_204 "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
 
-#define CONTENT_LENGTH "Content-Length: "
-long tryGetFullRequestLength(const char *request)
+void Assert(int check, char *message)
 {
-  char *bodyStart;
-  char *contentLengthHeader;
-  long headersLen;
-  long contentLen;
-
-  if (!(bodyStart = strstr(request, "\r\n\r\n")))
+  if (!check)
   {
-    // request doesn't contain all headers
-    return -1;
+    printf("%s\n", message);
+    exit(1);
   }
-  bodyStart += 4;
-  headersLen = bodyStart - request;
-
-  if (!(contentLengthHeader = strstr(request, CONTENT_LENGTH)))
-  {
-    // No Content-Length header
-    // Assuming that the body is empty
-    return headersLen;
-  }
-  contentLengthHeader += strlen(CONTENT_LENGTH);
-  contentLen = strtol(contentLengthHeader, NULL, 10);
-
-  return headersLen + contentLen;
-}
-
-int makeSocketNonBlocking(SOCKET_ socket)
-{
-#ifdef WIN32
-  u_long mode = 1;  // 1 to enable non-blocking socket
-  if (ioctlsocket(socket, FIONBIO, &mode))
-  {
-    return 1;
-  }
-#else
-  int flags;
-  if ((flags = fcntl(socket, F_GETFL)) == -1)
-  {
-    return 1;
-  }
-  if (fcntl(socket, F_SETFL, flags | O_NONBLOCK) == -1)
-  {
-    return 1;
-  }
-#endif
-
-  return 0;
 }
 
 int invalidSocketCheck(SOCKET_ s)
@@ -112,15 +68,6 @@ int closeSocket(SOCKET_ s)
 #endif
 }
 
-int isBlockingError()
-{
-#ifdef WIN32
-  return WSAGetLastError() == WSAEWOULDBLOCK;
-#else
-  return errno == EAGAIN || errno == EWOULDBLOCK;
-#endif
-}
-
 SOCKET_ startMockPortal()
 {
   struct sockaddr_in serverAddress;
@@ -129,7 +76,7 @@ SOCKET_ startMockPortal()
 
   // Socket setup: creates an endpoint for communication, returns a descriptor
   serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-  assert(!invalidSocketCheck(serverSocket) && "Failed to create socket");
+  Assert(!invalidSocketCheck(serverSocket), "Failed to create socket");
 
   // Construct local address structure
   serverAddress.sin_family = AF_INET;
@@ -138,11 +85,11 @@ SOCKET_ startMockPortal()
 
   // Bind socket to local address
   res = bind(serverSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress));
-  assert(!res && "Failed to bind socket");
+  Assert(!res, "Failed to bind socket");
 
   // Mark socket to listen for incoming connections
   res = listen(serverSocket, 10);
-  assert(!res && "Failed to mark socket to listen for incoming connections");
+  Assert(!res, "Failed to mark socket to listen for incoming connections");
 
   return serverSocket;
 }
@@ -184,10 +131,8 @@ handle(void *serverSocketVoid)
 
   SOCKET_ clientSocket, *serverSocket;
   char buff[BUFFER_SIZE];
-  char request[BUFFER_SIZE];
   char *umlStart, *umlEnd;
   int size_recv;
-  int length;
   long fullRequestLength = -1;
 
   printf("handle 1\n");
@@ -198,29 +143,28 @@ handle(void *serverSocketVoid)
   fflush(stdout);
   // Accept socket
   clientSocket = accept(*serverSocket, NULL, NULL);
-  assert(!invalidSocketCheck(clientSocket) && "Failed to accept the connection");
+  Assert(!invalidSocketCheck(clientSocket), "Failed to accept the connection");
 
   printf("handle 3\n");
   fflush(stdout);
   // Read the result
   memset(buff ,0 , BUFFER_SIZE);
-  memset(request ,0 , BUFFER_SIZE);
   printf("handle 33\n");
   fflush(stdout);
 
-  length = recv(clientSocket, request, BUFFER_SIZE-1, 0);
-  printf("handle 34 %d\n", length);
+  size_recv = recv(clientSocket, buff, BUFFER_SIZE-1, 0);
+  printf("handle 34 %d\n", size_recv);
   fflush(stdout);
-  assert(length >= 0 && "Failed to read the response");
+  Assert(size_recv >= 0, "Failed to read the response");
 
   printf("handle 4\n");
   fflush(stdout);
   // Parse port from the request
-  umlStart = strstr(request, "returnTo=");
-  assert(umlStart && "Wrong request");
+  umlStart = strstr(buff, "returnTo=");
+  Assert(umlStart, "Wrong request");
   umlStart += strlen("returnTo=");
   umlEnd = strstr(umlStart, "&");
-  assert(umlEnd && "Wrong request");
+  Assert(umlEnd, "Wrong request");
   *umlEnd = 0;
 
   printf("handle 5\n");
@@ -266,11 +210,10 @@ int main(int argc, char **argv)
 
   printf("main 3\n");
   fflush(stdout);
-  sleepMicroseconds(2000);
-  res = BrowserAuthInternal(hdbc, "test-email@gmail.com", "http://127.0.0.1:18087", 10, &creds);
+  res = BrowserAuthInternal(hdbc, "test-email@gmail.com", "http://127.0.0.1:18087", 1, &creds);
   printf("main 4 %d\n", res);
   fflush(stdout);
-  assert(res == 0 && "Browser authentication failed");
+  Assert(!res, "Browser authentication failed");
   printf("main 41 %d\n", (res == 0 && "Browser authentication failed"));
   fflush(stdout);
 #ifdef WIN32
@@ -286,13 +229,13 @@ int main(int argc, char **argv)
 
   printf("main 7\n");
   fflush(stdout);
-  assert(!strcmp(creds.email, "test-email@gmail.com") && "Wrong email");
+  Assert(!strcmp(creds.email, "test-email@gmail.com"), "Wrong email");
   printf("main 71 %s %s\n", creds.token, TOKEN);
   fflush(stdout);
 
-  assert(!strcmp(creds.token, TOKEN) && "Wrong token");
-  assert(!strcmp(creds.username, "test-user") && "Wrong username");
-  assert(creds.expiration == 1916239022 && "Wrong exp");
+  Assert(!strcmp(creds.token, TOKEN), "Wrong token");
+  Assert(!strcmp(creds.username, "test-user"), "Wrong username");
+  Assert(creds.expiration == 1916239022, "Wrong exp");
 
   printf("main 8\n");
   fflush(stdout);
@@ -300,7 +243,7 @@ int main(int argc, char **argv)
 
   // Test that BrowserAuth fails when server is not responding
   res = BrowserAuthInternal(hdbc, "test-email@gmail.com", "http://127.0.0.1:18087", 1, &creds);
-  assert(res && "Browser authentication expected to fail");
+  Assert(res, "Browser authentication expected to fail");
 
   SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
   SQLFreeHandle(SQL_HANDLE_ENV, henv);
