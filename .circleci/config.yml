@@ -67,9 +67,7 @@ jobs:
         type: string
       driver_type:
         type: string
-    executor:
-      name: win/default
-      size: "xlarge"
+    executor: win/default
     environment:
       BUILD_TYPE: << parameters.build_type >>
       TEST_DRIVER: << parameters.test_driver >>
@@ -88,18 +86,14 @@ jobs:
       - run:
           name: Download Chrome
           command: |
-            $LocalTempDir = $env:TEMP; $ChromeInstaller = "ChromeInstaller.exe"; (new-object    System.Net.WebClient).DownloadFile('http://dl.google.com/chrome/install/375.126/chrome_installer.exe', "$LocalTempDir\$ChromeInstaller"); & "$LocalTempDir\$ChromeInstaller" /silent /install; $Process2Monitor =  "ChromeInstaller"; Do { $ProcessesFound = Get-Process | ?{$Process2Monitor -contains $_.Name} | Select-Object -ExpandProperty Name; If ($ProcessesFound) { "Still running: $($ProcessesFound -join ', ')" | Write-Host; Start-Sleep -Seconds 2 } else { rm "$LocalTempDir\$ChromeInstaller" -ErrorAction SilentlyContinue -Verbose } } Until (!$ProcessesFound)
-      - run:
-          name: Download Chrome Defaulter
-          command: |
+            $LocalTempDir = $env:TEMP
+            $ChromeInstaller = "ChromeInstaller.exe"
+            (new-object    System.Net.WebClient).DownloadFile('http://dl.google.com/chrome/install/375.126/chrome_installer.exe', "$LocalTempDir\$ChromeInstaller")
+            & "$LocalTempDir\$ChromeInstaller" /silent /install
+            $Process2Monitor =  "ChromeInstaller"
+            Do { $ProcessesFound = Get-Process | ?{$Process2Monitor -contains $_.Name} | Select-Object -ExpandProperty Name; If ($ProcessesFound) { "Still running: $($ProcessesFound -join ', ')" | Write-Host; Start-Sleep -Seconds 2 } else { rm "$LocalTempDir\$ChromeInstaller" -ErrorAction SilentlyContinue -Verbose } } Until (!$ProcessesFound)
             Invoke-WebRequest https://kolbi.cz/SetDefaultBrowser.zip -OutFile SDB.zip
-      - run:
-          name: Unzip
-          command: |
             jar xf SDB.zip
-      - run:
-          name: Make Default
-          command: |
             ./SetDefaultBrowser/SetDefaultBrowser HKLM "Google Chrome"
       - run:
           name: Build project
@@ -429,7 +423,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -441,7 +435,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -453,7 +447,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -465,7 +459,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -477,7 +471,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -489,7 +483,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -501,7 +495,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -513,7 +507,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -525,7 +519,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -537,7 +531,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -549,7 +543,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -561,7 +555,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -573,7 +567,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
@@ -585,7 +579,7 @@ workflows:
           matrix:
             parameters:
               build_type:
-                - Debug
+                - RelWithDebInfo
               test_dsn:
                 - ssodbc_test_a
               test_driver:
