@@ -110,15 +110,6 @@ void sendJWT(char *url)
   system(command);
 }
 
-void sleepMicroseconds(int microseconds)
-{
-#ifdef WIN32
-  Sleep(microseconds);
-#else
-  usleep(microseconds);
-#endif
-}
-
 #ifdef WIN32
 DWORD WINAPI
 #else
@@ -126,54 +117,34 @@ void *
 #endif
 handle(void *serverSocketVoid)
 {
-  printf("handle 0\n");
-  fflush(stdout);
-
   SOCKET_ clientSocket, *serverSocket;
   char buff[BUFFER_SIZE];
   char *umlStart, *umlEnd;
   int size_recv;
-  long fullRequestLength = -1;
 
-  printf("handle 1\n");
-  fflush(stdout);
   serverSocket = (SOCKET_*)serverSocketVoid;
 
-  printf("handle 2\n");
-  fflush(stdout);
   // Accept socket
   clientSocket = accept(*serverSocket, NULL, NULL);
   Assert(!invalidSocketCheck(clientSocket), "Failed to accept the connection");
 
-  printf("handle 3\n");
-  fflush(stdout);
   // Read the result
   memset(buff ,0 , BUFFER_SIZE);
-  printf("handle 33\n");
-  fflush(stdout);
 
   size_recv = recv(clientSocket, buff, BUFFER_SIZE-1, 0);
-  printf("handle 34 %d\n", size_recv);
-  fflush(stdout);
   Assert(size_recv >= 0, "Failed to read the response");
 
-  printf("handle 4\n");
-  fflush(stdout);
   // Parse port from the request
   umlStart = strstr(buff, "returnTo=");
-  Assert(umlStart, "Wrong request");
+  Assert(umlStart != NULL, "Wrong request");
   umlStart += strlen("returnTo=");
   umlEnd = strstr(umlStart, "&");
-  Assert(umlEnd, "Wrong request");
+  Assert(umlEnd != NULL, "Wrong request");
   *umlEnd = 0;
 
-  printf("handle 5\n");
-  fflush(stdout);
   // Answer and close socket
   send(clientSocket, HTTP_204, sizeof(HTTP_204), 0);
   closeSocket(clientSocket);
-  printf("handle 6\n");
-  fflush(stdout);
 
   // JWT to the driver
   sendJWT(umlStart);
@@ -186,21 +157,15 @@ int main(int argc, char **argv)
   SOCKET_ serverSocket;
   int res;
 
-  printf("main 0\n");
-  fflush(stdout);
 #ifdef WIN32
   HANDLE thread;
 #else
   pthread_t thread;
 #endif
-  printf("main 1\n");
-  fflush(stdout);
   SQLAllocHandle(SQL_HANDLE_ENV, NULL, &henv);
   SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION,(SQLPOINTER)SQL_OV_ODBC2, SQL_IS_INTEGER);
   SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
 
-  printf("main 2\n");
-  fflush(stdout);
   serverSocket = startMockPortal();
 #ifdef WIN32
   thread = CreateThread(NULL, 0, handle, &serverSocket, 0, NULL);
@@ -208,37 +173,21 @@ int main(int argc, char **argv)
   pthread_create(&thread, NULL, handle, &serverSocket);
 #endif
 
-  printf("main 3\n");
-  fflush(stdout);
   res = BrowserAuthInternal(hdbc, "test-email@gmail.com", "http://127.0.0.1:18087", 1, &creds);
-  printf("main 4 %d\n", res);
-  fflush(stdout);
   Assert(!res, "Browser authentication failed");
-  printf("main 41 %d\n", (res == 0 && "Browser authentication failed"));
-  fflush(stdout);
 #ifdef WIN32
   WaitForSingleObject(thread, INFINITE);
 #else
-  printf("main 5\n");
-  fflush(stdout);
   pthread_join(thread, NULL);
-  printf("main 6\n");
-  fflush(stdout);
 #endif
   closeSocket(serverSocket);
 
-  printf("main 7\n");
-  fflush(stdout);
   Assert(!strcmp(creds.email, "test-email@gmail.com"), "Wrong email");
-  printf("main 71 %s %s\n", creds.token, TOKEN);
-  fflush(stdout);
 
   Assert(!strcmp(creds.token, TOKEN), "Wrong token");
   Assert(!strcmp(creds.username, "test-user"), "Wrong username");
   Assert(creds.expiration == 1916239022, "Wrong exp");
 
-  printf("main 8\n");
-  fflush(stdout);
   BrowserAuthCredentialsFree(&creds);
 
   // Test that BrowserAuth fails when server is not responding
@@ -248,7 +197,5 @@ int main(int argc, char **argv)
   SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
   SQLFreeHandle(SQL_HANDLE_ENV, henv);
 
-  printf("main 9\n");
-  fflush(stdout);
   return 0;
 }

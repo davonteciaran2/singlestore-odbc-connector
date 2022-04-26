@@ -365,12 +365,12 @@ int isBlockingError()
 #endif
 }
 
-void sleepMicroseconds(int microseconds)
+void sleepMilliseconds(int milliseconds)
 {
 #ifdef WIN32
-  Sleep(microseconds);
+  Sleep(milliseconds);
 #else
-  usleep(microseconds);
+  usleep(milliseconds*1000);
 #endif
 }
 
@@ -423,7 +423,7 @@ int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, 
         goto cleanupRequest;
       }
 
-      sleepMicroseconds(10);
+      sleepMilliseconds(10);
     } else
     {
       printf("readRequest43\n");
@@ -464,7 +464,7 @@ int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, 
           goto cleanupSocket;
         }
 
-        sleepMicroseconds(10);
+        sleepMilliseconds(10);
         continue;
       } else
       {
