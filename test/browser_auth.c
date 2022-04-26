@@ -99,9 +99,6 @@ void sendJWT(char *url)
   char command[BUFFER_SIZE];
 
   memset(command ,0 , BUFFER_SIZE);
-#ifdef WIN32
-  strcat(command, "start ");
-#endif
   strcat(command, "curl -X POST -d \"");
   strcat(command, TOKEN);
   strcat(command, "\" ");
@@ -130,7 +127,6 @@ handle(void *serverSocketVoid)
 
   // Read the result
   memset(buff ,0 , BUFFER_SIZE);
-
   size_recv = recv(clientSocket, buff, BUFFER_SIZE-1, 0);
   Assert(size_recv >= 0, "Failed to read the response");
 
@@ -183,7 +179,6 @@ int main(int argc, char **argv)
   closeSocket(serverSocket);
 
   Assert(!strcmp(creds.email, "test-email@gmail.com"), "Wrong email");
-
   Assert(!strcmp(creds.token, TOKEN), "Wrong token");
   Assert(!strcmp(creds.username, "test-user"), "Wrong username");
   Assert(creds.expiration == 1916239022, "Wrong exp");
