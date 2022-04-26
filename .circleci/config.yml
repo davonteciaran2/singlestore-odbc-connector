@@ -99,10 +99,10 @@ jobs:
           name: Build project
           command: |
             .circleci\build-windows.ps1
-#      - run:
-#          name: Run tests
-#          command: |
-#            .circleci\run-tests-windows.ps1
+      - run:
+          name: Run tests
+          command: |
+            .circleci\run-tests-windows.ps1
       - run:
           name: Run browser auth tests
           command: |
