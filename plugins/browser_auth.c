@@ -380,8 +380,6 @@ void sleepMilliseconds(int milliseconds)
 #define HTTP_500 "HTTP/1.1 500 Internal Server Error\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
 int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, BrowserAuthCredentials *credentials)
 {
-  printf("readRequest1\n");
-  fflush(stdout);
   int size_recv;
   char buff[BUFFER_SIZE];
   SOCKET_ clientSocket;
@@ -391,8 +389,6 @@ int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, 
 
   startTime = clock();
 
-  printf("readRequest2\n");
-  fflush(stdout);
   if (MADB_InitDynamicString(&request, "", BUFFER_SIZE, BUFFER_SIZE))
   {
     return MADB_SetError(&Dbc->Error, MADB_ERR_HY001, NULL, 0);
@@ -402,63 +398,39 @@ int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, 
   // This is needed in order to don't wait for request on the accept call
   // If request is not send, accept will return an error that can be checked using isBlockingError function
   makeSocketNonBlocking(serverSocket);
-  printf("readRequest3\n");
-  fflush(stdout);
   while (invalidSocketCheck(clientSocket = accept(serverSocket, NULL, NULL)))
   {
-    printf("readRequest4\n");
-    fflush(stdout);
     if (isBlockingError())
     {
-      printf("readRequest41\n");
-      fflush(stdout);
       if ((clock() - startTime)/CLOCKS_PER_SEC > requestReadTimeoutSec)
       {
-        printf("readRequest42\n");
-        fflush(stdout);
         MADB_SetError(&Dbc->Error, MADB_ERR_HYT00, "Browser authentication response timeout expired", 0);
         send(clientSocket, HTTP_400, sizeof(HTTP_400), 0);
-        printf("readRequest421 %d\n", Dbc->Error.ReturnValue);
-        fflush(stdout);
         goto cleanupRequest;
       }
 
       sleepMilliseconds(10);
     } else
     {
-      printf("readRequest43\n");
-      fflush(stdout);
       MADB_SetError(&Dbc->Error, MADB_ERR_S1000, "Failed to accept the connection for browser authentication", 0);
       goto cleanupRequest;
     }
   }
-  printf("readRequest5\n");
-  fflush(stdout);
 
   // Change clientSocket to be non blocking
   // This is needed in order to don't wait for data on the recv call
   // If data is not, send recv will return an error that can be checked using isBlockingError function
   makeSocketNonBlocking(clientSocket);
-  printf("readRequest6\n");
-  fflush(stdout);
   while(fullRequestLength == -1 || request.length < fullRequestLength)
   {
-    printf("readRequest7\n");
-    fflush(stdout);
     memset(buff, 0 , BUFFER_SIZE);
     size_recv = recv(clientSocket, buff, BUFFER_SIZE-1, 0);
     if (size_recv < 0)
     {
-      printf("readRequest71\n");
-      fflush(stdout);
       if (isBlockingError())
       {
-        printf("readRequest72\n");
-        fflush(stdout);
         if ((clock() - startTime)/CLOCKS_PER_SEC > requestReadTimeoutSec)
         {
-          printf("readRequest73\n");
-          fflush(stdout);
           MADB_SetError(&Dbc->Error, MADB_ERR_HYT00, "Browser authentication response timeout expired", 0);
           send(clientSocket, HTTP_400, sizeof(HTTP_400), 0);
           goto cleanupSocket;
@@ -468,16 +440,12 @@ int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, 
         continue;
       } else
       {
-        printf("readRequest74\n");
-        fflush(stdout);
         MADB_SetError(&Dbc->Error, MADB_ERR_S1000, "Failed to read data from socket for browser authentication", 0);
         send(clientSocket, HTTP_400, sizeof(HTTP_400), 0);
         goto cleanupSocket;
       }
     }
 
-    printf("readRequest8\n");
-    fflush(stdout);
     if (MADB_DynstrAppend(&request, buff))
     {
       MADB_SetError(&Dbc->Error, MADB_ERR_HY001, NULL, 0);
@@ -485,27 +453,19 @@ int readRequest(MADB_Dbc *Dbc, SOCKET_ serverSocket, int requestReadTimeoutSec, 
       goto cleanupSocket;
     }
 
-    printf("readRequest9\n");
-    fflush(stdout);
     if (fullRequestLength == -1)
     {
       fullRequestLength = tryGetFullRequestLength(request.str);
     }
   }
 
-  printf("readRequest10\n");
-  fflush(stdout);
   if (parseRequest(Dbc, request.str, credentials))
   {
     send(clientSocket, HTTP_400, sizeof(HTTP_400), 0);
     goto cleanupSocket;
   }
 
-  printf("readRequest11\n");
-  fflush(stdout);
   size_recv = send(clientSocket, HTTP_204, sizeof(HTTP_204), 0);
-  printf("readRequest %d\n", size_recv);
-  fflush(stdout);
 
 cleanupSocket:
   closeSocket(clientSocket);
@@ -516,68 +476,45 @@ cleanupRequest:
 
 int BrowserAuthInternal(MADB_Dbc *Dbc, char *email, char *endpoint, int requestReadTimeoutSec, BrowserAuthCredentials *credentials)
 {
-  printf("BrowserAuth 0\n");
-  fflush(stdout);
-
   MADB_DynString serverEndpoint;
   MADB_DynString openBrowserCommand;
   SOCKET_ serverSocket;
 
-  printf("BrowserAuth 1\n");
-  fflush(stdout);
   if (MADB_InitDynamicString(&serverEndpoint, "", BUFFER_SIZE, BUFFER_SIZE))
   {
     return MADB_SetError(&Dbc->Error, MADB_ERR_HY001, NULL, 0);
   }
-  printf("BrowserAuth 2\n");
-  fflush(stdout);
   if (MADB_InitDynamicString(&openBrowserCommand, "", BUFFER_SIZE, BUFFER_SIZE))
   {
     MADB_SetError(&Dbc->Error, MADB_ERR_HY001, NULL, 0);
     goto cleanupServerEndpoint;
   }
 
-
-  printf("BrowserAuth 3\n");
-  fflush(stdout);
   if (startLocalHttpServer(Dbc, &serverSocket, &serverEndpoint))
   {
     goto cleanupOpenBrowserCommand;
   }
-  printf("BrowserAuth 4\n");
-  fflush(stdout);
   if (getOpenBrowserCommand(Dbc, serverEndpoint.str, email, endpoint, &openBrowserCommand))
   {
     goto cleanupServer;
   }
-  printf("BrowserAuth 5 %s\n", openBrowserCommand.str);
-  fflush(stdout);
   if (system(openBrowserCommand.str))
   {
     MADB_SetError(&Dbc->Error, MADB_ERR_S1000, "Failed to open browser", 0);
     goto cleanupServer;
   }
 
-
-  printf("BrowserAuth 6\n");
-  fflush(stdout);
   if (readRequest(Dbc, serverSocket, requestReadTimeoutSec, credentials))
   {
-    printf("BrowserAuth 61 %d\n", Dbc->Error.ReturnValue);
-    fflush(stdout);
     goto cleanupServer;
   }
 
-  printf("BrowserAuth 7\n");
-  fflush(stdout);
 cleanupServer:
   closeSocket(serverSocket);
 cleanupOpenBrowserCommand:
   MADB_DynstrFree(&openBrowserCommand);
 cleanupServerEndpoint:
   MADB_DynstrFree(&serverEndpoint);
-  printf("BrowserAuth 71 %d\n", Dbc->Error.ReturnValue);
-  fflush(stdout);
   return Dbc->Error.ReturnValue;
 }
 #undef BUFFER_SIZE
