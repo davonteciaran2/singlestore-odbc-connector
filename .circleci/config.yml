@@ -239,9 +239,9 @@ jobs:
       - run:
           name: Build project
           command: ./.circleci/build-linux-in-docker.sh
-      - run:
-          name: Run tests
-          command: ./.circleci/run-tests-linux.sh
+#      - run:
+#          name: Run tests
+#          command: ./.circleci/run-tests-linux.sh
       - run:
           name: Run browser auth tests
           command: ./test/odbc_browser_auth
