@@ -26,7 +26,7 @@ then
   wget https://github.com/Kitware/CMake/releases/download/v3.20.3/cmake-3.20.3-linux-x86_64.tar.gz
   cd /usr || exit
   tar --strip-components=1 -xzf /root/project/cmake-3.20.3-linux-x86_64.tar.gz
-  yum makecache
+  yum makecache --refresh
   yum -y install xdg-utils w3m curl
 else
   apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 648ACFD622F3D138  # Debian 10/buster archive signing key
@@ -38,3 +38,5 @@ else
   apt-get update
   apt-get install -y unixodbc-dev=2.3.6-0.1 xdg-utils w3m curl
 fi
+
+echo 'export BROWSER=$(which w3m)' >> $BASH_ENV
