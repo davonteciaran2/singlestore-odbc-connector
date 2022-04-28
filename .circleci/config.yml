@@ -224,6 +224,7 @@ jobs:
       TEST_SCHEMA: odbc_test
       CONTINUOUS_INTEGRATION: true
       TERM: xterm-256color
+      BROWSER: /usr/bin/w3m
     steps:
       - run:
           name: Define Environment Variables
@@ -233,6 +234,7 @@ jobs:
             echo 'export TEST_PORT=$MEMSQL_PORT' >> $BASH_ENV
             echo 'export TEST_PASSWORD=$MEMSQL_PASSWORD' >> $BASH_ENV
             echo 'export TERM=xterm-256color' >> $BASH_ENV
+            echo 'export BROWSER=/usr/bin/w3m' >> $BASH_ENV
             source $BASH_ENV
       - checkout
       - run:
