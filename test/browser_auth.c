@@ -194,7 +194,7 @@ int main(int argc, char **argv)
 
   printf("main6\n");
   fflush(stdout);
-  res = BrowserAuthInternal(hdbc, "test-email@gmail.com", "http://127.0.0.1:18087", 1, &creds);
+  res = BrowserAuthInternal(hdbc, "test-email@gmail.com", "http://127.0.0.1:18087", 1000000, &creds);
   assert(!res && "Browser authentication failed");
 #ifdef WIN32
   WaitForSingleObject(thread, INFINITE);
