@@ -191,9 +191,9 @@ jobs:
       - run:
           name: Build project
           command: ./.circleci/build-ubuntu.sh
-#      - run:
-#          name: Run tests
-#          command: ./.circleci/run-tests-linux.sh
+      - run:
+          name: Run tests
+          command: ./.circleci/run-tests-linux.sh
       - run:
           name: Run browser auth tests
           command: ./test/odbc_browser_auth
@@ -241,9 +241,9 @@ jobs:
       - run:
           name: Build project
           command: ./.circleci/build-linux-in-docker.sh
-#      - run:
-#          name: Run tests
-#          command: ./.circleci/run-tests-linux.sh
+      - run:
+          name: Run tests
+          command: ./.circleci/run-tests-linux.sh
       - run:
           name: Run browser auth tests
           command: ./test/odbc_browser_auth
@@ -328,18 +328,6 @@ jobs:
 workflows:
   test:
     jobs:
-      - build-linux-in-docker:
-          name: build-debian-9-unicode-<< matrix.build_type >>
-          matrix:
-            parameters:
-              os_version:
-                - debian:9
-              build_type:
-                - RelWithDebInfo
-              test_dsn:
-                - ssodbc_test_w
-              test_driver:
-                - SingleStore ODBC Unicode Driver
       - build-ubuntu:
           name: build-ubuntu-sanitizer-unicode-7.6.5-<< matrix.build_type >>
           matrix:
@@ -356,104 +344,82 @@ workflows:
                 - memsql/cluster-in-a-box:centos-7.6.5-018454f4e3-4.0.1-1.13.0
               with_sanitizer:
                 - true
-#      - build-linux-in-docker:
-#          requires:
-#            - build-debian-9-unicode-RelWithDebInfo
-#          name: build-debian-9-ansi-<< matrix.build_type >>
-#          matrix:
-#            parameters:
-#              os_version:
-#                - debian:9
-#              build_type:
-#                - RelWithDebInfo
-#              test_dsn:
-#                - ssodbc_test_a
-#              test_driver:
-#                - SingleStore ODBC ANSI Driver
-#      - build-linux-in-docker:
-#          requires:
-#            - build-debian-9-ansi-RelWithDebInfo
-#          name: build-debian-10-unicode-<< matrix.build_type >>
-#          matrix:
-#            parameters:
-#              os_version:
-#                - debian:10
-#              build_type:
-#                - RelWithDebInfo
-#              test_dsn:
-#                - ssodbc_test_w
-#              test_driver:
-#                - SingleStore ODBC Unicode Driver
-#      - build-linux-in-docker:
-#          requires:
-#            - build-debian-10-unicode-RelWithDebInfo
-#          name: build-debian-10-ansi-<< matrix.build_type >>
-#          matrix:
-#            parameters:
-#              os_version:
-#                - debian:10
-#              build_type:
-#                - RelWithDebInfo
-#              test_dsn:
-#                - ssodbc_test_a
-#              test_driver:
-#                - SingleStore ODBC ANSI Driver
-#      - build-linux-in-docker:
-#          requires:
-#            - build-debian-10-ansi-RelWithDebInfo
-#          name: build-centos-7-unicode-<< matrix.build_type >>
-#          matrix:
-#            parameters:
-#              os_version:
-#                - centos:centos7
-#              build_type:
-#                - RelWithDebInfo
-#              test_dsn:
-#                - ssodbc_test_w
-#              test_driver:
-#                - SingleStore ODBC Unicode Driver
-#      - build-linux-in-docker:
-#          requires:
-#            - build-centos-7-unicode-RelWithDebInfo
-#          name: build-centos-7-ansi-<< matrix.build_type >>
-#          matrix:
-#            parameters:
-#              os_version:
-#                - centos:centos7
-#              build_type:
-#                - RelWithDebInfo
-#              test_dsn:
-#                - ssodbc_test_a
-#              test_driver:
-#                - SingleStore ODBC ANSI Driver
-#      - build-linux-in-docker:
-#          requires:
-#            - build-centos-7-ansi-RelWithDebInfo
-#          name: build-centos-8-unicode-<< matrix.build_type >>
-#          matrix:
-#            parameters:
-#              os_version:
-#                - centos:centos8
-#              build_type:
-#                - RelWithDebInfo
-#              test_dsn:
-#                - ssodbc_test_w
-#              test_driver:
-#                - SingleStore ODBC Unicode Driver
-#      - build-linux-in-docker:
-#          requires:
-#            - build-centos-8-unicode-RelWithDebInfo
-#          name: build-centos-8-ansi-<< matrix.build_type >>
-#          matrix:
-#            parameters:
-#              os_version:
-#                - centos:centos8
-#              build_type:
-#                - RelWithDebInfo
-#              test_dsn:
-#                - ssodbc_test_a
-#              test_driver:
-#                - SingleStore ODBC ANSI Driver
+      - build-ubuntu:
+          name: build-ubuntu-unicode-7.6.5-<< matrix.build_type >>
+          matrix:
+            parameters:
+              machine_class:
+                - large
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_w
+              test_driver:
+                - SingleStore ODBC Unicode Driver
+              memsql_image:
+                - memsql/cluster-in-a-box:centos-7.6.5-018454f4e3-4.0.1-1.13.0
+      - build-ubuntu:
+          name: build-ubuntu-ansi-7.6.5-<< matrix.build_type >>
+          matrix:
+            parameters:
+              machine_class:
+                - large
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_a
+              test_driver:
+                - SingleStore ODBC ANSI Driver
+              memsql_image:
+                - memsql/cluster-in-a-box:centos-7.6.5-018454f4e3-4.0.1-1.13.0
+      - build-macos:
+          name: build-macos-ansi-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_a
+              driver_name:
+                - SingleStore ODBC ANSI Driver
+              driver_type:
+                - ansi
+      - build-windows:
+          name: build-windows-unicode-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_w
+              test_driver:
+                - SingleStore ODBC Unicode Driver
+              driver_type:
+                - unicode
+      - build-macos:
+          name: build-macos-unicode-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_w
+              driver_name:
+                - SingleStore ODBC Unicode Driver
+              driver_type:
+                - unicode
+      - build-windows:
+          name: build-windows-ansi-<< matrix.build_type >>
+          matrix:
+            parameters:
+              build_type:
+                - RelWithDebInfo
+              test_dsn:
+                - ssodbc_test_a
+              test_driver:
+                - SingleStore ODBC ANSI Driver
+              driver_type:
+                - ansi
   daily:
     triggers:
       - schedule:
