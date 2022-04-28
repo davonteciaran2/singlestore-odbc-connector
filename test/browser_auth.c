@@ -87,6 +87,8 @@ SOCKET_ startMockPortal()
 
 void sendJWT(char *url)
 {
+  printf("sendJWT1\n");
+  fflush(stdout);
   char command[BUFFER_SIZE];
 
   memset(command ,0 , BUFFER_SIZE);
@@ -95,7 +97,11 @@ void sendJWT(char *url)
   strcat(command, "' ");
   strcat(command, url);
 
+  printf("sendJWT2\n");
+  fflush(stdout);
   system(command);
+  printf("sendJWT3\n");
+  fflush(stdout);
 }
 
 #ifdef WIN32
@@ -105,21 +111,31 @@ void *
 #endif
 handle(void *serverSocketVoid)
 {
+  printf("handle1\n");
+  fflush(stdout);
   SOCKET_ clientSocket, *serverSocket;
   char buff[BUFFER_SIZE];
   char *umlStart, *umlEnd;
   int size_recv;
+  printf("handle2\n");
+  fflush(stdout);
 
   serverSocket = (SOCKET_*)serverSocketVoid;
 
+  printf("handle3\n");
+  fflush(stdout);
   // Accept socket
   clientSocket = accept(*serverSocket, NULL, NULL);
   assert(!invalidSocketCheck(clientSocket) && "Failed to accept the connection");
+  printf("handle4\n");
+  fflush(stdout);
 
   // Read the result
   memset(buff ,0 , BUFFER_SIZE);
   size_recv = recv(clientSocket, buff, BUFFER_SIZE, 0);
   assert(size_recv >= 0 && "Failed to read the response");
+  printf("handle5\n");
+  fflush(stdout);
 
   // Parse port from the request
   umlStart = strstr(buff, "returnTo=");
@@ -128,38 +144,56 @@ handle(void *serverSocketVoid)
   umlEnd = strstr(umlStart, "&");
   assert(umlEnd && "Wrong request");
   *umlEnd = 0;
+  printf("handle6\n");
+  fflush(stdout);
 
   // Answer and close socket
   send(clientSocket, HTTP_204, sizeof(HTTP_204), 0);
   closeSocket(clientSocket);
 
+  printf("handle7\n");
+  fflush(stdout);
   // JWT to the driver
   sendJWT(umlStart);
+  printf("handle8\n");
+  fflush(stdout);
 }
 
 int main(int argc, char **argv)
 {
+  printf("main1\n");
+  fflush(stdout);
   SQLHANDLE henv, hdbc;
   BrowserAuthCredentials creds;
   SOCKET_ serverSocket;
   int res;
 
+  printf("main2\n");
+  fflush(stdout);
 #ifdef WIN32
   HANDLE thread;
 #else
   pthread_t thread;
 #endif
+  printf("main3\n");
+  fflush(stdout);
   SQLAllocHandle(SQL_HANDLE_ENV, NULL, &henv);
   SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION,(SQLPOINTER)SQL_OV_ODBC2, SQL_IS_INTEGER);
   SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
+  printf("main4\n");
+  fflush(stdout);
 
   serverSocket = startMockPortal();
+  printf("main5\n");
+  fflush(stdout);
 #ifdef WIN32
   thread = CreateThread(NULL, 0, handle, &serverSocket, 0, NULL);
 #else
   pthread_create(&thread, NULL, handle, &serverSocket);
 #endif
 
+  printf("main6\n");
+  fflush(stdout);
   res = BrowserAuthInternal(hdbc, "test-email@gmail.com", "http://127.0.0.1:18087", 1, &creds);
   assert(!res && "Browser authentication failed");
 #ifdef WIN32
@@ -167,21 +201,33 @@ int main(int argc, char **argv)
 #else
   pthread_join(thread, NULL);
 #endif
+  printf("main7\n");
+  fflush(stdout);
   closeSocket(serverSocket);
 
+  printf("main8\n");
+  fflush(stdout);
   assert(!strcmp(creds.email, "test-email@gmail.com") && "Wrong email");
   assert(!strcmp(creds.token, TOKEN) && "Wrong token");
   assert(!strcmp(creds.username, "test-user") && "Wrong username");
   assert(creds.expiration == 1916239022 && "Wrong exp");
 
+  printf("main9\n");
+  fflush(stdout);
   BrowserAuthCredentialsFree(&creds);
 
+  printf("main10\n");
+  fflush(stdout);
   // Test that BrowserAuth fails when server is not responding
   res = BrowserAuthInternal(hdbc, "test-email@gmail.com", "http://127.0.0.1:18087", 1, &creds);
   assert(res && "Browser authentication expected to fail");
 
+  printf("main11\n");
+  fflush(stdout);
   SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
   SQLFreeHandle(SQL_HANDLE_ENV, henv);
 
+  printf("main12\n");
+  fflush(stdout);
   return 0;
 }

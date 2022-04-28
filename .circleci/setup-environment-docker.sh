@@ -34,5 +34,6 @@ else
   apt-get install -y cmake make gcc libssl-dev dnsutils
   echo "deb http://deb.debian.org/debian buster main contrib non-free" >> /etc/apt/sources.list.d/tutu.list
   apt-get update
-  apt-get install -y unixodbc-dev=2.3.6-0.1 xdg-utils links2 elinks links lynx w3m
+  apt-get install -y unixodbc-dev=2.3.6-0.1 xdg-utils elinks lynx w3m
+  xdg-mime default w3m.desktop http
 fi
