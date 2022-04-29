@@ -26,6 +26,8 @@ then
   wget https://github.com/Kitware/CMake/releases/download/v3.20.3/cmake-3.20.3-linux-x86_64.tar.gz
   cd /usr || exit
   tar --strip-components=1 -xzf /root/project/cmake-3.20.3-linux-x86_64.tar.gz
+  yum -y install dnf-plugins-core
+  yum config-manager --set-enabled PowerTools
   yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
   yum -y install xdg-utils w3m curl
 else
