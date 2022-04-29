@@ -29,6 +29,7 @@ then
   yum -y install dnf-plugins-core
   yum config-manager --set-enabled PowerTools
   yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+  yum makecache
   yum -y install xdg-utils w3m curl
 else
   apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 648ACFD622F3D138  # Debian 10/buster archive signing key
