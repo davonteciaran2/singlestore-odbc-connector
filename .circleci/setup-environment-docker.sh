@@ -35,5 +35,5 @@ else
   apt-get install -y cmake make gcc libssl-dev dnsutils
   echo "deb http://deb.debian.org/debian buster main contrib non-free" >> /etc/apt/sources.list.d/tutu.list
   apt-get update
-  apt-get install -y unixodbc-dev=2.3.6-0.1 libglib2.0 libsecret-1-dev
+  apt-get install -y unixodbc-dev=2.3.6-0.1 'libglib2.0-0' libglib2.0-dev libsecret-1-dev
 fi
