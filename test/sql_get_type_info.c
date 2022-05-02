@@ -172,6 +172,8 @@ int run_sql_get_type_info(SQLHANDLE Stmt1, SQLSMALLINT DataType, MADB_TypeInfo *
 #ifdef _WIN32
     /* unsupported field */
     if(rc == SQL_ERROR && (!expTypeInfoCount || ExpTypeInfo[0].DataTypeAlias)) {
+        printf("AAAAAAAa\n");
+        fflush(stdout);
         SQLCHAR SQLState[6];
         SQLINTEGER NativeError;
         SQLCHAR SQLMessage[SQL_MAX_MESSAGE_LENGTH];
@@ -179,8 +181,12 @@ int run_sql_get_type_info(SQLHANDLE Stmt1, SQLSMALLINT DataType, MADB_TypeInfo *
 
         const SQLRETURN result = SQLGetDiagRec(SQL_HANDLE_STMT, Stmt1, 1, SQLState, &NativeError, SQLMessage, SQL_MAX_MESSAGE_LENGTH, &TextLength);
         if(result == SQL_SUCCESS || result == SQL_SUCCESS_WITH_INFO) {
+          printf("BBBBBB\n");
+          fflush(stdout);
           const char* const ExpectedError = "SQL data type out of range";
           const SQLSMALLINT ExpectedLength = strlen(ExpectedError);
+          printf("CCCC %s\n", SQLState);
+          fflush(stdout);
           if(!strcmp(SQLState, "S1004")
              && NativeError == 0
              && ExpectedLength <= TextLength
