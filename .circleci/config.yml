@@ -97,6 +97,26 @@ jobs:
           command: |
             .circleci\run-tests-windows.ps1
       - run:
+          name: Run tests
+          command: |
+            .circleci\run-tests-windows.ps1
+      - run:
+          name: Run tests
+          command: |
+            .circleci\run-tests-windows.ps1
+      - run:
+          name: Run tests
+          command: |
+            .circleci\run-tests-windows.ps1
+      - run:
+          name: Run tests
+          command: |
+            .circleci\run-tests-windows.ps1
+      - run:
+          name: Run tests
+          command: |
+            .circleci\run-tests-windows.ps1
+      - run:
           name: Run browser auth tests
           command: |
             cd ./<< parameters.build_type >>
@@ -147,6 +167,26 @@ jobs:
           name: Build project
           command: |
             ./.circleci/build-osx.sh
+      - run:
+          name: Run tests
+          command: |
+            ./.circleci/run-tests-osx.sh
+      - run:
+          name: Run tests
+          command: |
+            ./.circleci/run-tests-osx.sh
+      - run:
+          name: Run tests
+          command: |
+            ./.circleci/run-tests-osx.sh
+      - run:
+          name: Run tests
+          command: |
+            ./.circleci/run-tests-osx.sh
+      - run:
+          name: Run tests
+          command: |
+            ./.circleci/run-tests-osx.sh
       - run:
           name: Run tests
           command: |
