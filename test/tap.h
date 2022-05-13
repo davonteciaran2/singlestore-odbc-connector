@@ -1275,25 +1275,35 @@ void cleanup()
         errorMessage = "failed to init the connection";
         goto end;
     }
-    if (!mysql_real_connect(mysql, (const char *)my_servername, (const char *)my_uid, (const char *)my_pwd, NULL, my_port, NULL, 0))
-    {
-        errorMessage = mysql_error(mysql);
-        goto end;
-    }
-    sprintf(buff, "DROP DATABASE IF EXISTS %s", my_schema);
-    if (mysql_query(mysql, buff))
-    {
-        errorMessage = mysql_error(mysql);
-        goto end;
-    }
-    sprintf(buff, "CREATE DATABASE %s", my_schema);
-    if (mysql_query(mysql, buff))
+    if (!mysql_real_connect(mysql, (const char *)my_servername, (const char *)my_uid, (const char *)my_pwd, (const char *)my_schema, my_port, NULL, 0))
     {
         errorMessage = mysql_error(mysql);
         goto end;
     }
 
+    MYSQL_FIELD *field;
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+
+    sprintf(buff, "SELECT CONCAT('DROP TABLE IF EXISTS `', table_name, '`;') FROM information_schema.tables WHERE table_schema = '%s';", my_schema);
+    if (mysql_query(mysql, buff) || !(result = mysql_store_result(mysql)))
+    {
+        errorMessage = mysql_error(mysql);
+        goto end;
+    }
+
+    while ( (row = mysql_fetch_row(result)) )
+    {
+        unsigned long *lengths = mysql_fetch_lengths(result);
+        if (mysql_real_query(mysql, row[0], lengths[0]))
+        {
+            errorMessage = mysql_error(mysql);
+            goto end;
+        }
+    }
+
 end:
+    mysql_free_result(result);
     if (errorMessage)   // mysql_close(mysql) frees the memory pointed to by errorMessage
     {
         printf("Cleanup failed: %s\n\n", errorMessage);

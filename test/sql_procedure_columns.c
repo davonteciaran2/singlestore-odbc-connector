@@ -69,7 +69,16 @@ static int try_drop_check_error(const char* const command) {
 /* This should delete all the procedures created by tests in this file so that test failures do not chain up.
  * Call at the beginning of each test.
  */
-static int run_cleanup() {
+static int run_cleanup(my_bool is_hard) {
+    // TODO: when DB-55232 is done remove is_hard parameter
+    if (is_hard)
+    {
+        SQLExecDirect(Stmt, (SQLCHAR*)"drop database if exists odbc_test;", SQL_NTS);
+        SQLExecDirect(Stmt, (SQLCHAR*)"create database odbc_test;", SQL_NTS);
+        SQLExecDirect(Stmt, (SQLCHAR*)"use odbc_test;", SQL_NTS);
+        return OK;
+    }
+
     const char* const c_proc_names[] = {
         "test_procedure_columns",
         "TEST_GET_PRECISION_AND_ROUND_UP",
@@ -135,7 +144,7 @@ int run_sql_procedurecolumns_routine_type(SQLHANDLE Stmt, const SQLSMALLINT *Exp
                             "", "", "", "", "", "", "", "", "", "", "", "", "", "",
                             "'{}'", "'POINT(1, 1)'", "'POINT(1, 1)'", "'e'", "'s'"};
 
-    IS_OK(run_cleanup());
+    IS_OK(run_cleanup(0));
     OK_SIMPLE_STMT(Stmt, createStmtStr);
 
     CHECK_HANDLE_RC(SQL_HANDLE_STMT, Stmt, SQLProcedureColumns(Stmt, ExpTableCat, SQL_NTS, (SQLCHAR *)"", 0,
@@ -1114,7 +1123,7 @@ ODBC_TEST(metadata_id_for_procedurecolumns) {
     };
 
     // Init env
-    IS_OK(run_cleanup());
+    IS_OK(run_cleanup(1));
     for (i = 0; i < NUM_FUNCS; ++i) {
         OK_SIMPLE_STMT(Stmt, c_create_funcs[i]);
     }
@@ -1206,7 +1215,7 @@ ODBC_TEST(metadata_id_for_procedurecolumns) {
                                         CW("test_get_name"), SQL_NTS,
                                         NULL, SQL_NTS),
                     NULL_PTR_ERROR);
-
+    IS_OK(run_cleanup(1));
     return OK;
 }
 
@@ -1227,7 +1236,7 @@ ODBC_TEST(procedurecolumns_non_ascii_N) {
     };
 
     // Init env
-    IS_OK(run_cleanup());
+    IS_OK(run_cleanup(0));
     for (i = 0; i < NUM_FUNCS; ++i) {
         OK_SIMPLE_STMT(Stmt, c_create_funcs[i]);
     }
@@ -1277,7 +1286,7 @@ ODBC_TEST(procedurecolumns_non_ascii_W) {
     };
 
     // Init env
-    IS_OK(run_cleanup());
+    IS_OK(run_cleanup(0));
     for (i = 0; i < NUM_FUNCS; ++i) {
         OK_SIMPLE_STMTW(Stmt, CW(c_create_funcs[i]));
     }
