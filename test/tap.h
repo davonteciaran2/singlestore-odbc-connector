@@ -1282,19 +1282,19 @@ void cleanup()
     }
 
     MYSQL_FIELD *field;
-    MYSQL_RES *result;
+    MYSQL_RES *tbl_result = NULL, *proc_result = NULL;
     MYSQL_ROW row;
 
-    sprintf(buff, "SELECT CONCAT('DROP TABLE IF EXISTS `', table_name, '`;') FROM information_schema.tables WHERE table_schema = '%s';", my_schema);
-    if (mysql_query(mysql, buff) || !(result = mysql_store_result(mysql)))
+    sprintf(buff, "SELECT CONCAT('DROP ', routine_type, ' IF EXISTS `', routine_name, '`;')\
+                   FROM information_schema.routines WHERE routine_schema = '%s'", my_schema);
+    if (mysql_query(mysql, buff) || !(proc_result = mysql_store_result(mysql)))
     {
         errorMessage = mysql_error(mysql);
         goto end;
     }
-
-    while ( (row = mysql_fetch_row(result)) )
+    while ( (row = mysql_fetch_row(proc_result)) )
     {
-        unsigned long *lengths = mysql_fetch_lengths(result);
+        unsigned long *lengths = mysql_fetch_lengths(proc_result);
         if (mysql_real_query(mysql, row[0], lengths[0]))
         {
             errorMessage = mysql_error(mysql);
@@ -1302,8 +1302,26 @@ void cleanup()
         }
     }
 
+    sprintf(buff, "SELECT CONCAT('DROP ', IF(table_type = 'BASE TABLE', 'TABLE', 'VIEW'), ' IF EXISTS `', table_name, '`;')\
+                   FROM information_schema.tables WHERE table_schema = '%s'", my_schema);
+    if (mysql_query(mysql, buff) || !(tbl_result = mysql_store_result(mysql)))
+    {
+        errorMessage = mysql_error(mysql);
+        goto end;
+    }
+    while ( (row = mysql_fetch_row(tbl_result)) )
+    {
+        unsigned long *lengths = mysql_fetch_lengths(tbl_result);
+        if (mysql_real_query(mysql, row[0], lengths[0]))
+        {
+            errorMessage = mysql_error(mysql);
+            goto end;
+        }
+    }
 end:
-    mysql_free_result(result);
+    mysql_free_result(tbl_result);
+    mysql_free_result(proc_result);
+
     if (errorMessage)   // mysql_close(mysql) frees the memory pointed to by errorMessage
     {
         printf("Cleanup failed: %s\n\n", errorMessage);
