@@ -328,7 +328,7 @@ unsigned int MADB_FindToken(MADB_QUERY *Query, char *Compare)
 }
 
 
-static char * ParseCursorName(MADB_QUERY *Query, unsigned int *Offset)
+char * MADB_ParseCursorName(MADB_QUERY *Query, unsigned int *Offset)
 {
   unsigned int i, TokenCount= Query->Tokens.elements;
 
@@ -339,8 +339,8 @@ static char * ParseCursorName(MADB_QUERY *Query, unsigned int *Offset)
   for (i=0; i < TokenCount - 3; i++)
   {
     if (MADB_CompareToken(Query, i, "WHERE", 5, Offset) &&
-      MADB_CompareToken(Query, i+1, "CURRENT", 7, 0) &&
-      MADB_CompareToken(Query, i+2, "OF", 2, 0))
+        MADB_CompareToken(Query, i+1, "CURRENT", 7, 0) &&
+        MADB_CompareToken(Query, i+2, "OF", 2, 0))
     {
       return MADB_Token(Query, i + 3);
     }
@@ -348,10 +348,6 @@ static char * ParseCursorName(MADB_QUERY *Query, unsigned int *Offset)
   return NULL;
 }
 
-char * MADB_ParseCursorName(MADB_QUERY *Query, unsigned int *Offset)
-{
-  return ParseCursorName(Query, Offset);
-}
 
 enum enum_madb_query_type MADB_GetQueryType(const char *Token1, const char *Token2)
 {
@@ -486,7 +482,6 @@ int ParseQuery(MADB_QUERY *Query)
   {
     if (ReadingToken == FALSE)
     {
-      printf("TOKEN %s\n", MADB_Token(Query, Query->Tokens.elements - 1));
       Length= end - p;
       SkipSpacesAndComments(&p, &Length, TRUE);
 
