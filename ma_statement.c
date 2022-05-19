@@ -704,10 +704,10 @@ SQLRETURN MADB_StmtPrepare(MADB_Stmt *Stmt, char *StatementText, SQLINTEGER Text
     if (MADB_CompareToken(&Stmt->Query, Stmt->Query.Tokens.elements-1, "UPDATE", 6, NULL) &&
         MADB_CompareToken(&Stmt->Query, Stmt->Query.Tokens.elements-2, "FOR", 3, &updateForOffset))
     {
-      _snprintf(tmp, len + 40, "%.*s LIMIT %zd FOR UPDATE", updateForOffset, Stmt->Query.RefinedText, Stmt->Options.MaxRows);
+      _snprintf(tmp, len + 40, "SELECT * FROM (%.*s) LIMIT %zd FOR UPDATE", updateForOffset, Stmt->Query.RefinedText, Stmt->Options.MaxRows);
     } else
     {
-      _snprintf(tmp, len + 40, "%s LIMIT %zd", Stmt->Query.RefinedText, Stmt->Options.MaxRows);
+      _snprintf(tmp, len + 40, "SELECT * FROM (%s) LIMIT %zd", Stmt->Query.RefinedText, Stmt->Options.MaxRows);
     }
     
     MADB_DeleteQuery(&Stmt->Query);
