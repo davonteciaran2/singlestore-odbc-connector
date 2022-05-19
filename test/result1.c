@@ -515,7 +515,7 @@ ODBC_TEST(t_max_rows)
   OK_SIMPLE_STMT(Stmt,"select * from t_max_rows limit 5");
   IS( 3 == myrowcount(Stmt));
   SQLFreeStmt(Stmt,SQL_CLOSE);
-  OK_SIMPLE_STMT(Stmt,"select * from t_max_rows for update");
+  OK_SIMPLE_STMT(Stmt,"select * from t_max_rows_rowstore for update");
   IS( 3 == myrowcount(Stmt));
   SQLFreeStmt(Stmt,SQL_CLOSE);
   // TODO these queries fail for columnstore table DB-55352
