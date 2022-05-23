@@ -525,8 +525,12 @@ ODBC_TEST(t_max_rows)
   OK_SIMPLE_STMT(Stmt,"select * from t_max_rows_rowstore limit 5 for update");
   IS( 3 == myrowcount(Stmt));
   SQLFreeStmt(Stmt,SQL_CLOSE);
-  OK_SIMPLE_STMT(Stmt,"select id into @t_max_rows_id from t_max_rows limit 1");
-  SQLFreeStmt(Stmt,SQL_CLOSE);
+
+  if (ServerNotOlderThan(Connection, 7, 3, 0))
+  {
+    OK_SIMPLE_STMT(Stmt,"select id into @t_max_rows_id from t_max_rows limit 1");
+    SQLFreeStmt(Stmt,SQL_CLOSE);
+  }
   OK_SIMPLE_STMT(Stmt,"select id from t_max_rows into outfile '/dev/null'");
   SQLFreeStmt(Stmt,SQL_CLOSE);
 
