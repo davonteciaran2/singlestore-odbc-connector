@@ -526,13 +526,18 @@ ODBC_TEST(t_max_rows)
   IS( 3 == myrowcount(Stmt));
   SQLFreeStmt(Stmt,SQL_CLOSE);
 
-  //if (ServerNotOlderThan(Connection, 7, 3, 0))
-  //{
-  //  OK_SIMPLE_STMT(Stmt,"select id into @t_max_rows_id from t_max_rows limit 1");
-  //  SQLFreeStmt(Stmt,SQL_CLOSE);
-  //}
-  OK_SIMPLE_STMT(Stmt,"select id from t_max_rows into outfile '/dev/null'");
-  SQLFreeStmt(Stmt,SQL_CLOSE);
+  // SELECT INTO UDV was added in 7.3 version
+  if (ServerNotOlderThan(Connection, 7, 3, 0))
+  {
+    OK_SIMPLE_STMT(Stmt,"select id into @t_max_rows_id from t_max_rows limit 1");
+    SQLFreeStmt(Stmt,SQL_CLOSE);
+  }
+  // Before 7.6 SELECT INTO OUTFILE returned non-zero field count for SSPS and it causes an error during the execution
+  if (ServerNotOlderThan(Connection, 7, 6, 0))
+  {
+    OK_SIMPLE_STMT(Stmt,"select id from t_max_rows into outfile '/dev/null'");
+    SQLFreeStmt(Stmt,SQL_CLOSE);
+  }
 
   // multistatements
   // TODO PLAT-6212 SQL_ATTR_MAX_ROWS is ignored for multistatements
