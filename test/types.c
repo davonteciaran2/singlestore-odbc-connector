@@ -1279,32 +1279,24 @@ ODBC_TEST(t_odbc158)
   return OK;
 }
 
+ODBC_TEST(r)
+{
+  OK_SIMPLE_STMT(Stmt, "CREATE TABLE PQTX_CUSTOMER(CUSTOMER_ID INT, CUST_LAST_NAME TEXT, CUST_BIRTHDATE DATE)")
+  OK_SIMPLE_STMT(Stmt, "CREATE TABLE PQTX_DATATYPES(INTEGER_TYPE INT, NVARCHAR_TYPE TEXT, DATE_TYPE DATE)")
+
+
+  OK_SIMPLE_STMT(Stmt, "INSERT INTO PQTX_CUSTOMER(CUSTOMER_ID, CUST_LAST_NAME, CUST_BIRTHDATE) values (100, 'Bolender1', '1976/09/24'); INSERT INTO PQTX_DATATYPES (INTEGER_TYPE, NVARCHAR_TYPE, DATE_TYPE)values (1,'second statement', '1999-10-01');")
+
+  CHECK_STMT_RC(Stmt, SQLFreeStmt(Stmt, SQL_CLOSE));
+  CHECK_STMT_RC(Stmt, SQLFreeHandle(SQL_HANDLE_STMT, Stmt));
+  CHECK_DBC_RC(Connection, SQLEndTran(SQL_HANDLE_DBC, Connection, 0));
+  return OK;
+}
 
 MA_ODBC_TESTS my_tests[]=
 {
-  {t_longlong1,        "t_longlong1",       NORMAL, ALL_DRIVERS},
-  {t_decimal,          "t_decimal",         NORMAL, ALL_DRIVERS},
-  {t_bigint,           "t_bigint",          NORMAL, ALL_DRIVERS},
-  {t_enumset,          "t_enumset",         NORMAL, ALL_DRIVERS},
-  {t_bug16917,         "t_bug16917",        NORMAL, ALL_DRIVERS},
-  {t_bug16235,         "t_bug16235",        NORMAL, ALL_DRIVERS},
-  {t_bug27862_1,       "t_bug27862_1",      NORMAL, ALL_DRIVERS},
-  {t_bug27862_2,       "t_bug27862_2",      KNOWN_FAILURE, ALL_DRIVERS},
-  {decimal_scale,      "decimal_scale",     NORMAL, ALL_DRIVERS},
-  {binary_suffix,      "binary_suffix",     NORMAL, ALL_DRIVERS},
-  {float_scale,        "float_scale",       NORMAL, ALL_DRIVERS},
-  {bit,                "bit",               NORMAL, ALL_DRIVERS},
-  {t_bug32171,         "t_bug32171",        NORMAL, ALL_DRIVERS},
-  {sqlwchar,           "sqlwchar",          KNOWN_FAILURE, ALL_DRIVERS},
-  {t_sqlnum_msdn,      "t_sqlnum_msdn",     NORMAL, ALL_DRIVERS},
-  {t_sqlnum_from_str,  "t_sqlnum_from_str", NORMAL, ALL_DRIVERS},
-  {t_bindsqlnum_basic, "t_bindsqlnum_basic",NORMAL, ALL_DRIVERS},
-  {t_bindsqlnum_wide,  "t_bindsqlnum_wide", NORMAL, ALL_DRIVERS},
-  {t_sqlnum_to_str,    "t_sqlnum_to_str",   NORMAL, ALL_DRIVERS},
-  {t_bug31220,         "t_bug31220",        NORMAL, ALL_DRIVERS},
-  {t_bug29402,         "t_bug29402",        NORMAL, ALL_DRIVERS},
-  {t_sqlnum_truncate,  "t_sqlnum_truncate", NORMAL, ALL_DRIVERS},
-  {t_odbc158,          "odbc158_bigintcolumn_as_c_long", NORMAL, ALL_DRIVERS},
+
+  {r, "r", NORMAL, ALL_DRIVERS},
   {NULL, NULL, NORMAL, ALL_DRIVERS}
 };
 
