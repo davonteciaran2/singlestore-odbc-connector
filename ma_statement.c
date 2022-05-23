@@ -717,15 +717,6 @@ SQLRETURN MADB_StmtPrepare(MADB_Stmt *Stmt, char *StatementText, SQLINTEGER Text
     MADB_ParseQuery(&Stmt->Query);
   }
 
-  if (!Stmt->Query.ReturnsResult && !Stmt->Query.HasParameters &&
-    /* If have multistatement query, and this is not allowed, we want to do normal prepare.
-       To give it last chance. And to return correct error otherwise */
-    ! (QUERY_IS_MULTISTMT(Stmt->Query) && !Stmt->Query.BatchAllowed))
-  {
-    Stmt->State= MADB_SS_EMULATED;
-    return SQL_SUCCESS;
-  }
-
   // If server-side prepared statements are disabled, simply store the query on the client and wait for SQLExecute.
   if (MADB_SSPS_DISABLED(Stmt))
   {

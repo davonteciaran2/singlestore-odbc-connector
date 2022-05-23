@@ -1295,7 +1295,29 @@ ODBC_TEST(r)
 
 MA_ODBC_TESTS my_tests[]=
 {
-
+  {t_longlong1,        "t_longlong1",       NORMAL, ALL_DRIVERS},
+  {t_decimal,          "t_decimal",         NORMAL, ALL_DRIVERS},
+  {t_bigint,           "t_bigint",          NORMAL, ALL_DRIVERS},
+  {t_enumset,          "t_enumset",         NORMAL, ALL_DRIVERS},
+  {t_bug16917,         "t_bug16917",        NORMAL, ALL_DRIVERS},
+  {t_bug16235,         "t_bug16235",        NORMAL, ALL_DRIVERS},
+  {t_bug27862_1,       "t_bug27862_1",      NORMAL, ALL_DRIVERS},
+  {t_bug27862_2,       "t_bug27862_2",      KNOWN_FAILURE, ALL_DRIVERS},
+  {decimal_scale,      "decimal_scale",     NORMAL, ALL_DRIVERS},
+  {binary_suffix,      "binary_suffix",     NORMAL, ALL_DRIVERS},
+  {float_scale,        "float_scale",       NORMAL, ALL_DRIVERS},
+  {bit,                "bit",               NORMAL, ALL_DRIVERS},
+  {t_bug32171,         "t_bug32171",        NORMAL, ALL_DRIVERS},
+  {sqlwchar,           "sqlwchar",          KNOWN_FAILURE, ALL_DRIVERS},
+  {t_sqlnum_msdn,      "t_sqlnum_msdn",     NORMAL, ALL_DRIVERS},
+  {t_sqlnum_from_str,  "t_sqlnum_from_str", NORMAL, ALL_DRIVERS},
+  {t_bindsqlnum_basic, "t_bindsqlnum_basic",NORMAL, ALL_DRIVERS},
+  {t_bindsqlnum_wide,  "t_bindsqlnum_wide", NORMAL, ALL_DRIVERS},
+  {t_sqlnum_to_str,    "t_sqlnum_to_str",   NORMAL, ALL_DRIVERS},
+  {t_bug31220,         "t_bug31220",        NORMAL, ALL_DRIVERS},
+  {t_bug29402,         "t_bug29402",        NORMAL, ALL_DRIVERS},
+  {t_sqlnum_truncate,  "t_sqlnum_truncate", NORMAL, ALL_DRIVERS},
+  {t_odbc158,          "odbc158_bigintcolumn_as_c_long", NORMAL, ALL_DRIVERS},
   {r, "r", NORMAL, ALL_DRIVERS},
   {NULL, NULL, NORMAL, ALL_DRIVERS}
 };
