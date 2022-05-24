@@ -1286,26 +1286,14 @@ ODBC_TEST(r)
 
 
 
-  MYSQL conn;
-  mysql_init(&conn);
-  mysql_real_connect(&conn, "127.0.0.1", "root", "1", "odbc_test", 5506, NULL, CLIENT_MULTI_STATEMENTS);
-  if (mysql_real_query(&conn,
-                   "INSERT INTO PQTX_CUSTOMER(CUSTOMER_ID, CUST_LAST_NAME, CUST_BIRTHDATE) values (100, 'Bolender1', '1976/09/24'); INSERT INTO PQTX_DATATYPES (INTEGER_TYPE, NVARCHAR_TYPE, DATE_TYPE)values (1,'second statement', '1999-10-01');",
-                   strlen("INSERT INTO PQTX_CUSTOMER(CUSTOMER_ID, CUST_LAST_NAME, CUST_BIRTHDATE) values (100, 'Bolender1', '1976/09/24'); INSERT INTO PQTX_DATATYPES (INTEGER_TYPE, NVARCHAR_TYPE, DATE_TYPE)values (1,'second statement', '1999-10-01');")))
-  {
-    printf("BBBBBBBBBB\n");
-  }
+  CHECK_STMT_RC(Stmt, SQLPrepare(Stmt, "INSERT INTO PQTX_CUSTOMER(CUSTOMER_ID, CUST_LAST_NAME, CUST_BIRTHDATE) values (100, 'Bolender1', '1976/09/24'); INSERT INTO PQTX_DATATYPES (INTEGER_TYPE, NVARCHAR_TYPE, DATE_TYPE)values (?,?,?);", SQL_NTS));
+  SQLSMALLINT par;
+  CHECK_STMT_RC(Stmt, SQLNumParams(Stmt, &par));
+  printf("CCCCCCCC %d\n", par);
 
-  mysql_next_result(&conn);
-
-  if (mysql_commit(&conn)) {
-    printf("AAAAAAAA\n");
-  }
-  //OK_SIMPLE_STMT(Stmt, "INSERT INTO PQTX_CUSTOMER(CUSTOMER_ID, CUST_LAST_NAME, CUST_BIRTHDATE) values (100, 'Bolender1', '1976/09/24'); INSERT INTO PQTX_DATATYPES (INTEGER_TYPE, NVARCHAR_TYPE, DATE_TYPE)values (1,'second statement', '1999-10-01');")
-//
   CHECK_STMT_RC(Stmt, SQLFreeStmt(Stmt, SQL_CLOSE));
-  //CHECK_STMT_RC(Stmt, SQLFreeHandle(SQL_HANDLE_STMT, Stmt));
-  //CHECK_DBC_RC(Connection, SQLEndTran(SQL_HANDLE_DBC, Connection, 0));
+  CHECK_STMT_RC(Stmt, SQLFreeHandle(SQL_HANDLE_STMT, Stmt));
+  CHECK_DBC_RC(Connection, SQLEndTran(SQL_HANDLE_DBC, Connection, 0));
   return OK;
 }
 
