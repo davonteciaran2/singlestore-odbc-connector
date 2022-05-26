@@ -273,7 +273,6 @@ SQLRETURN MADB_StmtFree(MADB_Stmt *Stmt, SQLUSMALLINT Option)
       RESET_DAE_STATUS(Stmt);
     }
 
-
     if (Stmt->State == MADB_SS_EMULATED && QUERY_IS_MULTISTMT(Stmt->Query))
     {
       LOCK_MARIADB(Stmt->Connection);
@@ -349,8 +348,17 @@ SQLRETURN MADB_StmtFree(MADB_Stmt *Stmt, SQLUSMALLINT Option)
       Stmt->DaeStmt= NULL;
     }
     EnterCriticalSection(&Stmt->Connection->cs);
-    /* TODO: if multistatement was prepared, but not executed, we would get here Stmt->stmt leaked. Unlikely that is very probable scenario,
-             thus leaving this for new version */
+
+    if (Stmt->State == MADB_SS_EMULATED && QUERY_IS_MULTISTMT(Stmt->Query))
+    {
+      while (mysql_more_results(Stmt->Connection->mariadb))
+      {
+        mysql_next_result(Stmt->Connection->mariadb);
+      }
+    }
+
+      /* TODO: if multistatement was prepared, but not executed, we would get here Stmt->stmt leaked. Unlikely that is very probable scenario,
+               thus leaving this for new version */
     if (QUERY_IS_MULTISTMT(Stmt->Query) && Stmt->MultiStmts)
     {
       unsigned int i;
@@ -384,16 +392,6 @@ SQLRETURN MADB_StmtFree(MADB_Stmt *Stmt, SQLUSMALLINT Option)
     EnterCriticalSection(&Stmt->Connection->ListsCs);
     Stmt->Connection->Stmts= MADB_ListDelete(Stmt->Connection->Stmts, &Stmt->ListItem);
     LeaveCriticalSection(&Stmt->Connection->ListsCs);
-
-    if (Stmt->State == MADB_SS_EMULATED && QUERY_IS_MULTISTMT(Stmt->Query))
-    {
-      LOCK_MARIADB(Stmt->Connection);
-      while (mysql_more_results(Stmt->Connection->mariadb))
-      {
-        mysql_next_result(Stmt->Connection->mariadb);
-      }
-      UNLOCK_MARIADB(Stmt->Connection);
-    }
 
     MADB_FREE(Stmt);
   } /* End of switch (Option) */
